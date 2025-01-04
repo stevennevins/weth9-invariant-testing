@@ -8,24 +8,20 @@ import {IWETH} from "../src/IWETH.sol";
 contract Universe is Test {
     using EnumerableSet for EnumerableSet.AddressSet;
 
+    EnumerableSet.AddressSet private _targetAddresses;
+    EnumerableSet.AddressSet private _users;
+    mapping(string => EnumerableSet.AddressSet) private _targetsByName;
+    mapping(address => string) public targetNames;
+    mapping(address => string) public userLabels;
+    mapping(string => address) public userAddresses;
+
     IWETH public weth;
     uint256 public callCount;
 
-    // Map contract name to set of addresses implementing that contract
-    mapping(string => EnumerableSet.AddressSet) private _targetsByName;
-    // Map address to its contract name
-    mapping(address => string) public targetNames;
-    // Set of all target addresses
-    EnumerableSet.AddressSet private _targetAddresses;
-    // Set of all users
-    EnumerableSet.AddressSet private _users;
-    // Map user address to label
-    mapping(address => string) public userLabels;
-    // Map label to user address
-    mapping(string => address) public userAddresses;
-
     function addTarget(string memory name, address contractAddress) public {
         require(contractAddress != address(0), "Cannot add zero address");
+        /// TODO: I wanted to add a check to make sure it's a target we know about
+        ///     And know we can generate calldata for
         // require(vm.getCode(name).length > 0, "Name must match contract");
         _targetsByName[name].add(contractAddress);
         targetNames[contractAddress] = name;
@@ -98,27 +94,6 @@ contract Universe is Test {
         return _users.at(index);
     }
 
-    function forEachUser(
-        function(address) external func
-    ) public {
-        uint256 length = _users.length();
-        for (uint256 i = 0; i < length; i++) {
-            func(_users.at(i));
-        }
-    }
-
-    function reduceUsers(
-        uint256 acc,
-        function(uint256,address) external returns (uint256) func
-    ) public returns (uint256) {
-        uint256 result = acc;
-        uint256 length = _users.length();
-        for (uint256 i = 0; i < length; i++) {
-            result = func(result, _users.at(i));
-        }
-        return result;
-    }
-
     function users() external view returns (address[] memory) {
         uint256 length = _users.length();
         address[] memory addresses = new address[](length);
@@ -133,6 +108,7 @@ contract Universe is Test {
     }
 
     function incrementCallCount() public {
+        // console2.log(callCount);
         callCount++;
     }
 }

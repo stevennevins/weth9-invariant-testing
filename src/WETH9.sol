@@ -28,6 +28,11 @@ contract WETH9 {
     mapping(address => uint256) public balanceOf;
     mapping(address => mapping(address => uint256)) public allowance;
 
+    // TODO: added to get rid of compiler error
+    receive() external payable {
+        deposit();
+    }
+
     fallback() external payable {
         deposit();
     }

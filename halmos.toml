@@ -1,20 +1,9 @@
 [global]
-loop = 10                               # Set the loop unrolling bound. I'm setting to the depth of my number of actions explored
-default-bytes-lengths = "0,32,96,1024" # Set the default length candidates for `bytes` and `string` types.
-storage-layout = "generic"             # Set the generic storage layout model.
-ffi = true                             # Enable the foreign function interface (ffi) cheatcode.
-
-# Debugging settings.
-verbose = 0                            # Set the verbosity level for the tests.
+loop = 4                               # Set the loop unrolling bound. I'm setting to the depth of my number of actions explored
+ffi = false                             # Enable the foreign function interface (ffi) cheatcode.
 statistics = false                      # Print the statistics.
 early-exit = false                      # Stop after a counterexample is found.
-
-
-# Solver settings.
 cache-solver = true                    # Cache unsatisfiable queries using unsatisfiable cores.
-# print failed execution states
 print-failed-states = false
 width = 100000
-
-# set the maximum length in steps of a single path; 0 means unlimited
 depth = 100000
