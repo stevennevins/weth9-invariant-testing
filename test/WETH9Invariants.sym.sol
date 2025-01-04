@@ -18,15 +18,18 @@ contract WETH9InvariantsTest is WETH9SymbolicSetup {
 
         for (uint256 i = 0; i < numUsers; i++) {
             User user = createUser();
-            uint256 ethAmount = svm.createUint256(string.concat("ethAmount_user", Strings.toString(i)));
+            uint256 ethAmount =
+                svm.createUint256(string.concat("ethAmount_user", Strings.toString(i)));
             vm.deal(address(user), ethAmount);
             totalInitialETH += ethAmount;
         }
 
         for (uint256 i = 0; i < numActions; i++) {
             bytes memory data = createWethCalldata();
-            uint256 msgValue = svm.createUint256(string.concat("msgValue_action", Strings.toString(i)));
-            uint256 randomIndex = svm.createUint256(string.concat("randomIndex_action", Strings.toString(i)));
+            uint256 msgValue =
+                svm.createUint256(string.concat("msgValue_action", Strings.toString(i)));
+            uint256 randomIndex =
+                svm.createUint256(string.concat("randomIndex_action", Strings.toString(i)));
             address randomUserAddress = getUserAt(randomIndex % usersCount());
             User user = User(randomUserAddress);
             vm.assume(msgValue <= user.getWETHBalance());
@@ -56,15 +59,18 @@ contract WETH9InvariantsTest is WETH9SymbolicSetup {
         // Create users and give them symbolic ETH amounts
         for (uint256 i = 0; i < numUsers; i++) {
             User user = createUser();
-            uint256 ethAmount = svm.createUint256(string.concat("ethAmount_user", Strings.toString(i)));
+            uint256 ethAmount =
+                svm.createUint256(string.concat("ethAmount_user", Strings.toString(i)));
             vm.deal(address(user), ethAmount);
         }
 
         // Perform symbolic actions
         for (uint256 i = 0; i < numActions; i++) {
             bytes memory data = createWethCalldata();
-            uint256 msgValue = svm.createUint256(string.concat("msgValue_action", Strings.toString(i)));
-            uint256 randomIndex = svm.createUint256(string.concat("randomIndex_action", Strings.toString(i)));
+            uint256 msgValue =
+                svm.createUint256(string.concat("msgValue_action", Strings.toString(i)));
+            uint256 randomIndex =
+                svm.createUint256(string.concat("randomIndex_action", Strings.toString(i)));
             address randomUserAddress = getUserAt(randomIndex % usersCount());
             User user = User(randomUserAddress);
             vm.assume(msgValue <= user.getWETHBalance());
@@ -88,15 +94,18 @@ contract WETH9InvariantsTest is WETH9SymbolicSetup {
         // Create users and give them symbolic ETH amounts
         for (uint256 i = 0; i < numUsers; i++) {
             User user = createUser();
-            uint256 ethAmount = svm.createUint256(string.concat("ethAmount_user", Strings.toString(i)));
+            uint256 ethAmount =
+                svm.createUint256(string.concat("ethAmount_user", Strings.toString(i)));
             vm.deal(address(user), ethAmount);
         }
 
         // Perform symbolic actions
         for (uint256 i = 0; i < numActions; i++) {
             bytes memory data = createWethCalldata();
-            uint256 msgValue = svm.createUint256(string.concat("msgValue_action", Strings.toString(i)));
-            uint256 randomIndex = svm.createUint256(string.concat("randomIndex_action", Strings.toString(i)));
+            uint256 msgValue =
+                svm.createUint256(string.concat("msgValue_action", Strings.toString(i)));
+            uint256 randomIndex =
+                svm.createUint256(string.concat("randomIndex_action", Strings.toString(i)));
             address randomUserAddress = getUserAt(randomIndex % usersCount());
             User user = User(randomUserAddress);
             vm.assume(msgValue <= user.getWETHBalance());
