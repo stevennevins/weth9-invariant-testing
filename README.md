@@ -1,66 +1,40 @@
-## Foundry
+# Invariant and Symbolic Testing with Halmos
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+## Overview
 
-Foundry consists of:
+**This repository demonstrates symbolic and invariant testing of WETH9 using Halmos.**
 
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+Halmos is a symbolic testing tool that allows you to verify properties of smart contracts by exploring all possible states and inputs. Unlike fuzz testing which uses random inputs, symbolic testing analyzes the contract behavior mathematically to prove properties hold for all possible inputs.
 
-## Documentation
+This repo contains two main types of tests:
 
-https://book.getfoundry.sh/
+1. Property Tests (`WETH9Properties.sym.sol`):
+
+   - Verify specific behaviors like deposit/withdraw functionality
+   - Check isolation between users' balances and allowances
+
+2. Invariant Tests (`WETH9Invariants.sym.sol`):
+   - Verify system-wide properties that should always hold
+   - Tests run multiple symbolic actions across multiple symbolic users
+
+## Installation
+
+### Install Halmos
+
+If you haven't installed Halmos yet, please refer to the installation guide or quickly install it with:
+
+```shell
+uv tool install halmos
+```
+
+### Install Foundry
+
+To install Foundry, follow the instructions in the [Foundry documentation](https://book.getfoundry.sh/getting-started/installation).
 
 ## Usage
 
-### Build
+### Running Halmos Tests
 
 ```shell
-$ forge build
-```
-
-### Test
-
-```shell
-$ forge test
-```
-
-### Format
-
-```shell
-$ forge fmt
-```
-
-### Gas Snapshots
-
-```shell
-$ forge snapshot
-```
-
-### Anvil
-
-```shell
-$ anvil
-```
-
-### Deploy
-
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
-
-### Cast
-
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
+halmos
 ```
