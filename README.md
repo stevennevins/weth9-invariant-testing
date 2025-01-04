@@ -47,4 +47,4 @@ For local testing, consider using a lower depth, e.g., --depth 1000
 halmos --function invariant --depth 10000000
 ```
 
-### Alternatively: Reduce the number of users or the number of actions
+Alternatively: Reduce the number of users or the number of actions
