@@ -39,12 +39,12 @@ To install Foundry, follow the instructions in the [Foundry documentation](https
 halmos
 ```
 
-// Start Generation Here
+### Note: Invariant tests can take a long time to run.
 
-# Note: Invariant tests can take a long time to run. For local testing, consider using a lower depth, e.g., --depth 1000
-
-# Alternatively: Reduce the number of users or the number of actions
+For local testing, consider using a lower depth, e.g., --depth 1000
 
 ```shell
 halmos --function invariant --depth 10000000
 ```
+
+### Alternatively: Reduce the number of users or the number of actions
