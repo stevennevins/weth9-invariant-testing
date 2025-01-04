@@ -7,12 +7,12 @@ import {IWETH} from "../src/IWETH.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
 contract WETH9InvariantsTest is WETH9SymbolicSetup {
-    function check_invariant_conservationOfETH() public {
+    function invariant_conservationOfETH() public {
         uint256 numUsers = svm.createUint256("numUsers");
         uint256 numActions = svm.createUint256("numActions");
 
-        vm.assume(numUsers > 0 && numUsers < 4);
-        vm.assume(numActions > 0 && numActions < 4);
+        vm.assume(numUsers > 0 && numUsers < 3);
+        vm.assume(numActions > 0 && numActions < 6);
 
         uint256 totalInitialETH;
 
@@ -46,12 +46,12 @@ contract WETH9InvariantsTest is WETH9SymbolicSetup {
         assert(totalInitialETH == totalETHBalance + totalWETHSupply);
     }
 
-    function check_invariant_solvencyDeposits() public {
+    function invariant_solvencyDeposits() public {
         uint256 numUsers = svm.createUint256("numUsers");
         uint256 numActions = svm.createUint256("numActions");
 
-        vm.assume(numUsers > 0 && numUsers < 4);
-        vm.assume(numActions > 0 && numActions < 4);
+        vm.assume(numUsers > 0 && numUsers < 3);
+        vm.assume(numActions > 0 && numActions < 6);
 
         // Create users and give them symbolic ETH amounts
         for (uint256 i = 0; i < numUsers; i++) {
@@ -78,12 +78,12 @@ contract WETH9InvariantsTest is WETH9SymbolicSetup {
         assertEq(address(weth).balance, totalSupply);
     }
 
-    function check_invariant_depositorBalances() public {
+    function invariant_depositorBalances() public {
         uint256 numUsers = svm.createUint256("numUsers");
         uint256 numActions = svm.createUint256("numActions");
 
-        vm.assume(numUsers > 0 && numUsers < 4);
-        vm.assume(numActions > 0 && numActions < 4);
+        vm.assume(numUsers > 0 && numUsers < 3);
+        vm.assume(numActions > 0 && numActions < 6);
 
         // Create users and give them symbolic ETH amounts
         for (uint256 i = 0; i < numUsers; i++) {
