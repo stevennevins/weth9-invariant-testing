@@ -10,6 +10,7 @@ import {SymTest} from "halmos-cheatcodes/SymTest.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
 contract WETH9SymbolicSetup is Test, Universe, SymTest {
+    bytes internal userCode = address(new User(address(this))).code;
     function setUpSymbolic() public {
         weth = IWETH(address(new WETH9()));
         addTarget("WETH9", address(weth));
@@ -26,6 +27,14 @@ contract WETH9SymbolicSetup is Test, Universe, SymTest {
         string memory label = string(abi.encodePacked("User_", Strings.toString(usersCount() + 1)));
         vm.prank(symCreator);
         User user = new User(address(this));
+        addUser(address(user), label);
+        return user;
+    }
+
+    function createConcreteUser(address addr) internal returns (User) {
+        string memory label = string(abi.encodePacked("ConcreteUser_", Strings.toString(usersCount() + 1)));
+        vm.etch(addr, userCode);
+        User user = User(addr);
         addUser(address(user), label);
         return user;
     }

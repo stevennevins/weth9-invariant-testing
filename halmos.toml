@@ -1,5 +1,5 @@
 [global]
-loop = 8                               # Set the loop unrolling bound. I'm setting to the depth of my number of actions explored
+loop = 10                               # Set the loop unrolling bound. I'm setting to the depth of my number of actions explored
 ffi = false                             # Enable the foreign function interface (ffi) cheatcode.
 statistics = false                      # Print the statistics.
 early-exit = false                      # Stop after a counterexample is found.
@@ -8,4 +8,4 @@ print-failed-states = false
 width = 10000
 depth = 100000
 solver-threads = 24
-solver-timeout-assertion = 120000 # increased timeout
+solver-timeout-assertion = 60000 # increased timeout
