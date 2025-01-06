@@ -11,7 +11,8 @@ import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
 contract WETH9SymbolicSetup is Test, Universe, SymTest {
     bytes internal userCode = address(new User(address(this))).code;
-    function setUpSymbolic() public {
+
+    function setUp() public {
         weth = IWETH(address(new WETH9()));
         addTarget("WETH9", address(weth));
     }
@@ -31,11 +32,13 @@ contract WETH9SymbolicSetup is Test, Universe, SymTest {
         return user;
     }
 
-    function createConcreteUser(address addr) internal returns (User) {
-        string memory label = string(abi.encodePacked("ConcreteUser_", Strings.toString(usersCount() + 1)));
+    function createConcreteUser(
+        address addr
+    ) internal returns (User) {
+        string memory label =
+            string(abi.encodePacked("ConcreteUser_", Strings.toString(usersCount() + 1)));
         vm.etch(addr, userCode);
-        User user = User(payable(addr));
-        addUser(address(user), label);
-        return user;
+        addUser(addr, label);
+        return User(addr);
     }
 }

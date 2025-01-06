@@ -7,7 +7,8 @@ import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {console2} from "forge-std/Test.sol";
 
 contract User {
-    Universe immutable internal universe;
+    Universe internal immutable universe;
+
     constructor(
         address _universe
     ) {
@@ -30,6 +31,4 @@ contract User {
     ) external view returns (uint256) {
         return universe.weth().allowance(address(this), spender);
     }
-
-    receive() external payable {}
 }

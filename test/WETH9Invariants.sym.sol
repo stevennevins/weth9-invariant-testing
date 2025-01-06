@@ -12,27 +12,27 @@ contract WETH9InvariantsTest is WETH9SymbolicSetup {
 
     function invariant_conservationOfETH() public {
         uint256 totalInitialETH;
+        User user;
 
         for (uint256 i = 0; i < NUM_USERS; i++) {
-            User user = createConcreteUser(address(uint160(0x1000 + i)));
+            user = createConcreteUser(address(uint160(0x1000 + i)));
             uint256 ethAmount =
-                svm.createUint256(string.concat("ethAmount_user", Strings.toString(i)));
+                svm.createUint256(string.concat("balance_user", Strings.toString(i)));
             vm.deal(address(user), ethAmount);
             totalInitialETH += ethAmount;
         }
 
         for (uint256 i = 0; i < NUM_ACTIONS; i++) {
             bytes memory data = createWethCalldata();
-            uint256 randomIndex =
-                svm.createUint256(string.concat("randomIndex_action", Strings.toString(i)));
-            address randomUserAddress = getUserAt(randomIndex % usersCount());
-            User user = User(payable(randomUserAddress));
+            uint256 randIndex = svm.createUint256(string.concat("rand_index", Strings.toString(i)));
+            user = User(getUserAt(randIndex % usersCount()));
 
             bool success;
             if (bytes4(data) == IWETH.deposit.selector) {
-                uint256 msgValue = svm.createUint256(string.concat("msgValue_action", Strings.toString(i)));
-                vm.assume(msgValue <= user.getWETHBalance());
-                success = user.execute{value: msgValue}(address(weth), data);
+                uint256 value =
+                    svm.createUint256(string.concat("value_action", Strings.toString(i)));
+                vm.assume(value <= user.getWETHBalance());
+                success = user.execute{value: value}(address(weth), data);
             } else {
                 success = user.execute(address(weth), data);
             }
@@ -52,26 +52,26 @@ contract WETH9InvariantsTest is WETH9SymbolicSetup {
 
     function invariant_solvencyDeposits() public {
         // Create users and give them symbolic ETH amounts
+        User user;
         for (uint256 i = 0; i < NUM_USERS; i++) {
-            User user = createConcreteUser(address(uint160(0x2000 + i)));
+            user = createConcreteUser(address(uint160(0x2000 + i)));
             uint256 ethAmount =
-                svm.createUint256(string.concat("ethAmount_user", Strings.toString(i)));
+                svm.createUint256(string.concat("balance_user", Strings.toString(i)));
             vm.deal(address(user), ethAmount);
         }
 
         // Perform symbolic actions
         for (uint256 i = 0; i < NUM_ACTIONS; i++) {
             bytes memory data = createWethCalldata();
-            uint256 randomIndex =
-                svm.createUint256(string.concat("randomIndex_action", Strings.toString(i)));
-            address randomUserAddress = getUserAt(randomIndex % usersCount());
-            User user = User(payable(randomUserAddress));
+            uint256 randIndex = svm.createUint256(string.concat("rand_index", Strings.toString(i)));
+            user = User(getUserAt(randIndex % usersCount()));
 
             bool success;
             if (bytes4(data) == IWETH.deposit.selector) {
-                uint256 msgValue = svm.createUint256(string.concat("msgValue_action", Strings.toString(i)));
-                vm.assume(msgValue <= user.getWETHBalance());
-                success = user.execute{value: msgValue}(address(weth), data);
+                uint256 value =
+                    svm.createUint256(string.concat("value_action", Strings.toString(i)));
+                vm.assume(value <= user.getWETHBalance());
+                success = user.execute{value: value}(address(weth), data);
             } else {
                 success = user.execute(address(weth), data);
             }
@@ -85,26 +85,26 @@ contract WETH9InvariantsTest is WETH9SymbolicSetup {
 
     function invariant_depositorBalances() public {
         // Create users and give them symbolic ETH amounts
+        User user;
         for (uint256 i = 0; i < NUM_USERS; i++) {
-            User user = createConcreteUser(address(uint160(0x3000 + i)));
+            user = createConcreteUser(address(uint160(0x3000 + i)));
             uint256 ethAmount =
-                svm.createUint256(string.concat("ethAmount_user", Strings.toString(i)));
+                svm.createUint256(string.concat("balance_user", Strings.toString(i)));
             vm.deal(address(user), ethAmount);
         }
 
         // Perform symbolic actions
         for (uint256 i = 0; i < NUM_ACTIONS; i++) {
             bytes memory data = createWethCalldata();
-            uint256 randomIndex =
-                svm.createUint256(string.concat("randomIndex_action", Strings.toString(i)));
-            address randomUserAddress = getUserAt(randomIndex % usersCount());
-            User user = User(payable(randomUserAddress));
+            uint256 randIndex = svm.createUint256(string.concat("rand_index", Strings.toString(i)));
+            user = User(getUserAt(randIndex % usersCount()));
 
             bool success;
             if (bytes4(data) == IWETH.deposit.selector) {
-                uint256 msgValue = svm.createUint256(string.concat("msgValue_action", Strings.toString(i)));
-                vm.assume(msgValue <= user.getWETHBalance());
-                success = user.execute{value: msgValue}(address(weth), data);
+                uint256 value =
+                    svm.createUint256(string.concat("value_action", Strings.toString(i)));
+                vm.assume(value <= user.getWETHBalance());
+                success = user.execute{value: value}(address(weth), data);
             } else {
                 success = user.execute(address(weth), data);
             }
@@ -114,8 +114,8 @@ contract WETH9InvariantsTest is WETH9SymbolicSetup {
         // Check that no individual account balance exceeds the WETH totalSupply
         uint256 totalSupply = weth.totalSupply();
         for (uint256 i = 0; i < usersCount(); i++) {
-            address userAddress = getUserAt(i);
-            uint256 userBalance = weth.balanceOf(userAddress);
+            user = User(getUserAt(i));
+            uint256 userBalance = user.getWETHBalance();
             assert(userBalance <= totalSupply);
         }
     }
