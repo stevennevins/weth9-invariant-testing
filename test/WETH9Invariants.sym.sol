@@ -26,7 +26,7 @@ contract WETH9InvariantsTest is WETH9SymbolicSetup {
             uint256 randomIndex =
                 svm.createUint256(string.concat("randomIndex_action", Strings.toString(i)));
             address randomUserAddress = getUserAt(randomIndex % usersCount());
-            User user = User(randomUserAddress);
+            User user = User(payable(randomUserAddress));
 
             bool success;
             if (bytes4(data) == IWETH.deposit.selector) {
@@ -65,7 +65,7 @@ contract WETH9InvariantsTest is WETH9SymbolicSetup {
             uint256 randomIndex =
                 svm.createUint256(string.concat("randomIndex_action", Strings.toString(i)));
             address randomUserAddress = getUserAt(randomIndex % usersCount());
-            User user = User(randomUserAddress);
+            User user = User(payable(randomUserAddress));
 
             bool success;
             if (bytes4(data) == IWETH.deposit.selector) {
@@ -98,7 +98,7 @@ contract WETH9InvariantsTest is WETH9SymbolicSetup {
             uint256 randomIndex =
                 svm.createUint256(string.concat("randomIndex_action", Strings.toString(i)));
             address randomUserAddress = getUserAt(randomIndex % usersCount());
-            User user = User(randomUserAddress);
+            User user = User(payable(randomUserAddress));
 
             bool success;
             if (bytes4(data) == IWETH.deposit.selector) {

@@ -30,4 +30,6 @@ contract User {
     ) external view returns (uint256) {
         return universe.weth().allowance(address(this), spender);
     }
+
+    receive() external payable {}
 }

@@ -34,7 +34,7 @@ contract WETH9SymbolicSetup is Test, Universe, SymTest {
     function createConcreteUser(address addr) internal returns (User) {
         string memory label = string(abi.encodePacked("ConcreteUser_", Strings.toString(usersCount() + 1)));
         vm.etch(addr, userCode);
-        User user = User(addr);
+        User user = User(payable(addr));
         addUser(address(user), label);
         return user;
     }
