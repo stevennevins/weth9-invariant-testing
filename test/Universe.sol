@@ -11,9 +11,9 @@ contract Universe is Test {
     EnumerableSet.AddressSet private _targetAddresses;
     EnumerableSet.AddressSet private _users;
     mapping(string => EnumerableSet.AddressSet) private _targetsByName;
-    mapping(address => string) public targetNames;
-    mapping(address => string) public userLabels;
-    mapping(string => address) public userAddresses;
+    mapping(address => string) internal targetNames;
+    mapping(address => string) internal userLabels;
+    mapping(string => address) internal userAddresses;
 
     IWETH public weth;
 

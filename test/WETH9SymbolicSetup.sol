@@ -12,7 +12,7 @@ import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 contract WETH9SymbolicSetup is Test, Universe, SymTest {
     bytes internal userCode = address(new User(address(this))).code;
 
-    function setUp() public {
+    function setUp() public virtual {
         weth = IWETH(address(new WETH9()));
         addTarget("WETH9", address(weth));
     }
