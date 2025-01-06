@@ -8,7 +8,7 @@ import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
 contract WETH9InvariantsTest is WETH9SymbolicSetup {
     uint256 public constant NUM_USERS = 3;
-    uint256 public constant NUM_ACTIONS = 5;
+    uint256 public constant NUM_ACTIONS = 8;
 
     function invariant_conservationOfETH() public {
         uint256 totalInitialETH;
