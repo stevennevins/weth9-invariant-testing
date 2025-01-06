@@ -16,13 +16,10 @@ contract Universe is Test {
     mapping(string => address) public userAddresses;
 
     IWETH public weth;
-    uint256 public callCount;
 
     function addTarget(string memory name, address contractAddress) public {
         require(contractAddress != address(0), "Cannot add zero address");
-        /// TODO: I wanted to add a check to make sure it's a target we know about
-        ///     And know we can generate calldata for
-        // require(vm.getCode(name).length > 0, "Name must match contract");
+        require(!_users.contains(contractAddress), "Address is already a user");
         _targetsByName[name].add(contractAddress);
         targetNames[contractAddress] = name;
         _targetAddresses.add(contractAddress);
@@ -82,6 +79,7 @@ contract Universe is Test {
         require(user != address(0), "Cannot add zero address");
         require(bytes(label).length > 0, "Label cannot be empty");
         require(userAddresses[label] == address(0), "Label already in use");
+        require(!_targetAddresses.contains(user), "Address is already a target");
         _users.add(user);
         userLabels[user] = label;
         userAddresses[label] = user;
@@ -105,10 +103,5 @@ contract Universe is Test {
 
     function usersCount() public view returns (uint256) {
         return _users.length();
-    }
-
-    function incrementCallCount() public {
-        // console2.log(callCount);
-        callCount++;
     }
 }
