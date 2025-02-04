@@ -9,7 +9,7 @@ import {WETH9} from "../src/WETH9.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {KontrolCheats} from "kontrol-cheatcodes/KontrolCheats.sol";
 
-contract WETH9Test_Properties is  Test, KontrolCheats, Universe {
+contract WETH9Test_Properties is Test, KontrolCheats, Universe {
     function setUp() public {
         weth = IWETH(address(new WETH9()));
         addTarget("WETH9", address(weth));
@@ -17,8 +17,9 @@ contract WETH9Test_Properties is  Test, KontrolCheats, Universe {
 
     function createUser() internal returns (User user) {
         user = new User(address(this));
-        addUser(address(user), Strings.toString(usersCount()+1));
+        addUser(address(user), Strings.toString(usersCount() + 1));
     }
+
     function test_userCreation() public {
         User user = createUser();
 

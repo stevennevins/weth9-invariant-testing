@@ -4,6 +4,7 @@ out = "out"
 libs = ["lib"]
 evm_version = "cancun"
 solc_version = "0.8.27"
+cache = false
 
 [profile.halmos]
 src = "src"
@@ -12,7 +13,7 @@ libs = ["lib"]
 evm_version = "cancun"
 solc_version = "0.8.27"
 bytecode_hash = 'none'
-extra_output = ["storageLayout", "metadata"]
+extra_output = ['storageLayout', 'ast', 'abi', 'evm.methodIdentifiers', 'evm.deployedBytecode.object', 'metadata', 'devdoc']
 
 remappings = [
     "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",
