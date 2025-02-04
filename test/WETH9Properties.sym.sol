@@ -1,30 +1,34 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.6.0 <0.9.0;
 
-import {WETH9SymbolicSetup} from "./WETH9SymbolicSetup.sol";
 import {User} from "./User.sol";
 import {IWETH} from "../src/IWETH.sol";
+import {Test, console2} from "forge-std/Test.sol";
+import {Universe} from "./Universe.sol";
+import {WETH9} from "../src/WETH9.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import {KontrolCheats} from "kontrol-cheatcodes/KontrolCheats.sol";
 
-contract WETH9PropertiesTest is WETH9SymbolicSetup {
-    function check_userCreation() public {
+contract WETH9Test_Properties is  Test, KontrolCheats, Universe {
+    function setUp() public {
+        weth = IWETH(address(new WETH9()));
+        addTarget("WETH9", address(weth));
+    }
+
+    function createUser() internal returns (User user) {
+        user = new User(address(this));
+        addUser(address(user), Strings.toString(usersCount()+1));
+    }
+    function test_userCreation() public {
         User user = createUser();
 
         assert(address(user).code.length > 0);
         assert(user.getWETHBalance() == 0);
     }
 
-    function check_concreteUserCreation() public {
-        address addr = address(0x1003);
-        User user = createConcreteUser(addr);
-
-        assert(address(user).code.length > 0);
-        assert(user.getWETHBalance() == 0);
-        assert(address(user) == addr);
-    }
-
-    function check_deposit() public {
+    function test_deposit() public {
         User user = createUser();
-        uint256 depositAmount = svm.createUint256("depositAmount");
+        uint256 depositAmount = freshUInt256();
         uint256 balanceBefore = user.getWETHBalance();
 
         vm.deal(address(user), depositAmount);
@@ -35,10 +39,10 @@ contract WETH9PropertiesTest is WETH9SymbolicSetup {
         assert(balanceAfter == balanceBefore + depositAmount);
     }
 
-    function check_depositIsolation() public {
+    function test_depositIsolation() public {
         User depositor = createUser();
         User otherUser = createUser();
-        uint256 depositAmount = svm.createUint256("depositAmount");
+        uint256 depositAmount = freshUInt256();
 
         vm.assume(address(depositor) != address(otherUser));
 
@@ -54,9 +58,9 @@ contract WETH9PropertiesTest is WETH9SymbolicSetup {
         assert(balanceAfter == balanceBefore);
     }
 
-    function check_withdraw() public {
+    function test_withdraw() public {
         User user = createUser();
-        uint256 withdrawAmount = svm.createUint256("withdrawAmount");
+        uint256 withdrawAmount = freshUInt256();
 
         vm.deal(address(user), withdrawAmount);
         bytes memory depositCall = abi.encodeCall(IWETH.deposit, ());
@@ -72,10 +76,10 @@ contract WETH9PropertiesTest is WETH9SymbolicSetup {
         assert(balanceAfter == balanceBefore - withdrawAmount);
     }
 
-    function check_withdrawIsolation() public {
+    function test_withdrawIsolation() public {
         User withdrawer = createUser();
         User otherUser = createUser();
-        uint256 withdrawAmount = svm.createUint256("withdrawAmount");
+        uint256 withdrawAmount = freshUInt256();
 
         vm.assume(address(withdrawer) != address(otherUser));
 
@@ -93,10 +97,10 @@ contract WETH9PropertiesTest is WETH9SymbolicSetup {
         assert(balanceAfter == balanceBefore);
     }
 
-    function check_approve() public {
+    function test_approve() public {
         User user = createUser();
         User spender = createUser();
-        uint256 allowanceAmount = svm.createUint256("allowanceAmount");
+        uint256 allowanceAmount = freshUInt256();
 
         bytes memory approveCall =
             abi.encodeCall(IWETH.approve, (address(spender), allowanceAmount));
@@ -107,12 +111,12 @@ contract WETH9PropertiesTest is WETH9SymbolicSetup {
         assert(allowanceAfter == allowanceAmount);
     }
 
-    function check_approveIsolation() public {
+    function test_approveIsolation() public {
         User user = createUser();
         User spender1 = createUser();
         User otherUser = createUser();
         User spender2 = createUser();
-        uint256 allowanceAmount = svm.createUint256("allowanceAmount");
+        uint256 allowanceAmount = freshUInt256();
 
         vm.assume(address(user) != address(otherUser));
 
@@ -127,10 +131,10 @@ contract WETH9PropertiesTest is WETH9SymbolicSetup {
         assert(allowanceAfter == allowanceBefore);
     }
 
-    function check_transfer() public {
+    function test_transfer() public {
         User sender = createUser();
         User recipient = createUser();
-        uint256 transferAmount = svm.createUint256("transferAmount");
+        uint256 transferAmount = freshUInt256();
 
         vm.assume(address(sender) != address(recipient));
 
@@ -152,11 +156,11 @@ contract WETH9PropertiesTest is WETH9SymbolicSetup {
         assert(recipientBalanceAfter == recipientBalanceBefore + transferAmount);
     }
 
-    function check_transferIsolation() public {
+    function test_transferIsolation() public {
         User sender = createUser();
         User recipient = createUser();
         User otherUser = createUser();
-        uint256 transferAmount = svm.createUint256("transferAmount");
+        uint256 transferAmount = freshUInt256();
 
         vm.assume(address(sender) != address(recipient));
         vm.assume(address(sender) != address(otherUser));
@@ -177,11 +181,11 @@ contract WETH9PropertiesTest is WETH9SymbolicSetup {
         assert(otherBalanceAfter == otherBalanceBefore);
     }
 
-    function check_transferFrom() public {
+    function test_transferFrom() public {
         User spender = createUser();
         User owner = createUser();
         User recipient = createUser();
-        uint256 transferAmount = svm.createUint256("transferAmount");
+        uint256 transferAmount = freshUInt256();
 
         vm.assume(address(owner) != address(recipient));
 
@@ -206,12 +210,12 @@ contract WETH9PropertiesTest is WETH9SymbolicSetup {
         assert(recipientBalanceAfter == recipientBalanceBefore + transferAmount);
     }
 
-    function check_transferFromIsolation() public {
+    function test_transferFromIsolation() public {
         User spender = createUser();
         User owner = createUser();
         User recipient = createUser();
         User otherUser = createUser();
-        uint256 transferAmount = svm.createUint256("transferAmount");
+        uint256 transferAmount = freshUInt256();
 
         vm.assume(address(spender) != address(recipient));
         vm.assume(address(spender) != address(otherUser));
@@ -235,11 +239,11 @@ contract WETH9PropertiesTest is WETH9SymbolicSetup {
         assert(otherBalanceAfter == otherBalanceBefore);
     }
 
-    function check_transferFromAllowance() public {
+    function test_transferFromAllowance() public {
         User spender = createUser();
         User owner = createUser();
         User recipient = createUser();
-        uint256 transferAmount = svm.createUint256("transferAmount");
+        uint256 transferAmount = freshUInt256();
 
         vm.assume(address(spender) != address(owner));
         vm.assume(address(owner) != address(recipient));
@@ -263,10 +267,10 @@ contract WETH9PropertiesTest is WETH9SymbolicSetup {
         assert(allowanceAfter == allowanceBefore - transferAmount);
     }
 
-    function check_transferFromSelfAllowance() public {
+    function test_transferFromSelfAllowance() public {
         User owner = createUser();
         User recipient = createUser();
-        uint256 transferAmount = svm.createUint256("transferAmount");
+        uint256 transferAmount = freshUInt256();
 
         vm.assume(address(owner) != address(recipient));
 
@@ -286,11 +290,11 @@ contract WETH9PropertiesTest is WETH9SymbolicSetup {
         assert(allowanceAfter == allowanceBefore);
     }
 
-    function check_transferFromMaxAllowance() public {
+    function test_transferFromMaxAllowance() public {
         User spender = createUser();
         User owner = createUser();
         User recipient = createUser();
-        uint256 transferAmount = svm.createUint256("transferAmount");
+        uint256 transferAmount = freshUInt256();
 
         vm.assume(address(owner) != address(recipient));
 
