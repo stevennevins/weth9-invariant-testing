@@ -5,16 +5,25 @@ import {Test, console2} from "forge-std/Test.sol";
 import {Universe} from "./Universe.sol";
 import {User} from "./User.sol";
 import {IWETH} from "../src/IWETH.sol";
-import {WETH9} from "../src/WETH9.sol";
+import {WETH9Harness} from "./WETH9Harness.sol";
 import {SymTest} from "halmos-cheatcodes/SymTest.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
 contract WETH9SymbolicSetup is Test, Universe, SymTest {
     bytes internal userCode = address(new User(address(this))).code;
+    WETH9Harness internal harness;
 
     function setUp() public virtual {
-        weth = IWETH(address(new WETH9()));
-        addTarget("WETH9", address(weth));
+        harness = new WETH9Harness();
+        weth = IWETH(address(harness));
+        addTarget("WETH9Harness", address(weth));
+
+        // Enable symbolic storage for the WETH contract
+        svm.enableSymbolicStorage(address(harness.weth()));
+        svm.enableSymbolicStorage(address(harness));
+
+        // Assert precondition that sumOfAllBalances equals totalSupply
+        vm.assume(harness.sumOfAllBalances() == weth.totalSupply());
     }
 
     function createWethCalldata() internal view returns (bytes memory) {

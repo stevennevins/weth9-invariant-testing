@@ -5,6 +5,12 @@ libs = ["lib"]
 evm_version = "cancun"
 solc_version = "0.8.27"
 
+remappings = [
+    "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",
+    "halmos-cheatcodes/=lib/halmos-cheatcodes/src/",
+    "forge-std/=lib/forge-std/src/"
+]
+
 [profile.halmos]
 src = "src"
 out = "out"
@@ -12,11 +18,12 @@ libs = ["lib"]
 evm_version = "cancun"
 solc_version = "0.8.27"
 bytecode_hash = 'none'
+ast = true
 extra_output = ["storageLayout", "metadata"]
 
 remappings = [
     "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",
-    "halmos-cheatcodes/=lib/halmos/cheatcodes/src/",
+    "halmos-cheatcodes/=lib/halmos-cheatcodes/src/",
     "forge-std/=lib/forge-std/src/"
 ]
 

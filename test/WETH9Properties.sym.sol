@@ -10,7 +10,6 @@ contract WETH9PropertiesTest is WETH9SymbolicSetup {
         User user = createUser();
 
         assert(address(user).code.length > 0);
-        assert(user.getWETHBalance() == 0);
     }
 
     function check_concreteUserCreation() public {
@@ -18,7 +17,6 @@ contract WETH9PropertiesTest is WETH9SymbolicSetup {
         User user = createConcreteUser(addr);
 
         assert(address(user).code.length > 0);
-        assert(user.getWETHBalance() == 0);
         assert(address(user) == addr);
     }
 

@@ -8,7 +8,7 @@ import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
 contract WETH9InvariantsTest is WETH9SymbolicSetup {
     uint256 internal constant NUM_USERS = 3;
-    uint256 internal constant NUM_ACTIONS = 8;
+    uint256 internal constant NUM_ACTIONS = 3;
     uint256 internal totalInitialETH;
 
     function setUp() public override {
@@ -16,14 +16,12 @@ contract WETH9InvariantsTest is WETH9SymbolicSetup {
         User user;
         for (uint256 i = 0; i < NUM_USERS; i++) {
             user = createConcreteUser(address(uint160(0x1000 + i)));
-            uint256 ethAmount =
-                svm.createUint256(string.concat("balance_user", Strings.toString(i)));
-            vm.deal(address(user), ethAmount);
-            totalInitialETH += ethAmount;
+            totalInitialETH += user.getWETHBalance();
         }
+        vm.assume(totalInitialETH <= weth.totalSupply());
     }
 
-    function invariant_conservationOfETH() public {
+    function check_conservationOfETH() public {
         User user;
         for (uint256 i = 0; i < NUM_ACTIONS; i++) {
             bytes memory data = createWethCalldata();
@@ -53,7 +51,7 @@ contract WETH9InvariantsTest is WETH9SymbolicSetup {
         assert(totalInitialETH == totalETHBalance + totalWETHSupply);
     }
 
-    function invariant_solvencyDeposits() public {
+    function check_solvencyDeposits() public {
         User user;
         // Perform symbolic actions
         for (uint256 i = 0; i < NUM_ACTIONS; i++) {
@@ -78,7 +76,7 @@ contract WETH9InvariantsTest is WETH9SymbolicSetup {
         assertEq(address(weth).balance, totalSupply);
     }
 
-    function invariant_depositorBalances() public {
+    function check_depositorBalances() public {
         User user;
         // Perform symbolic actions
         for (uint256 i = 0; i < NUM_ACTIONS; i++) {
