@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.6.0 <0.9.0;
 
-import {Test, console2} from "forge-std/Test.sol";
+import {Test} from "forge-std/Test.sol";
 import {Universe} from "./Universe.sol";
 import {User} from "./User.sol";
 import {IWETH} from "../src/IWETH.sol";
@@ -17,13 +17,6 @@ contract WETH9SymbolicSetup is Test, Universe, SymTest {
         harness = new WETH9Harness();
         weth = IWETH(address(harness));
         addTarget("WETH9Harness", address(weth));
-
-        // Enable symbolic storage for the WETH contract
-        svm.enableSymbolicStorage(address(harness.weth()));
-        svm.enableSymbolicStorage(address(harness));
-
-        // Assert precondition that sumOfAllBalances equals totalSupply
-        vm.assume(harness.sumOfAllBalances() == weth.totalSupply());
     }
 
     function createWethCalldata() internal view returns (bytes memory) {

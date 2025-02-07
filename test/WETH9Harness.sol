@@ -6,36 +6,38 @@ import {Vm} from "forge-std/Vm.sol";
 
 contract WETH9Harness {
     WETH9 public immutable weth;
-    uint256 public sumOfAllBalances;
+    uint256 public sumPostStateUserBalances;
     Vm internal constant vm = Vm(address(uint160(uint256(keccak256("hevm cheat code")))));
 
     constructor() {
         weth = new WETH9();
-        sumOfAllBalances = 0;
+        sumPostStateUserBalances = 0;
     }
 
     receive() external payable {
         vm.prank(msg.sender);
         weth.deposit{value: msg.value}();
-        sumOfAllBalances += msg.value;
+        sumPostStateUserBalances += msg.value;
     }
 
     fallback() external payable {
         vm.prank(msg.sender);
         weth.deposit{value: msg.value}();
-        sumOfAllBalances += msg.value;
+        sumPostStateUserBalances += msg.value;
     }
 
     function deposit() public payable {
         vm.prank(msg.sender);
         weth.deposit{value: msg.value}();
-        sumOfAllBalances += msg.value;
+        sumPostStateUserBalances += msg.value;
     }
 
-    function withdraw(uint256 wad) public {
+    function withdraw(
+        uint256 wad
+    ) public {
         vm.prank(msg.sender);
         weth.withdraw(wad);
-        sumOfAllBalances -= wad;
+        sumPostStateUserBalances -= wad;
     }
 
     function totalSupply() public view returns (uint256) {
@@ -57,7 +59,9 @@ contract WETH9Harness {
         return weth.transferFrom(src, dst, wad);
     }
 
-    function balanceOf(address who) public view returns (uint256) {
+    function balanceOf(
+        address who
+    ) public view returns (uint256) {
         return weth.balanceOf(who);
     }
 
@@ -75,5 +79,9 @@ contract WETH9Harness {
 
     function decimals() public view returns (uint8) {
         return weth.decimals();
+    }
+
+    function getETHBalance() public view returns (uint256) {
+        return address(weth).balance;
     }
 }
