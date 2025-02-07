@@ -6,30 +6,40 @@ import {Vm} from "forge-std/Vm.sol";
 
 contract WETH9Harness {
     WETH9 public immutable weth;
-    uint256 public sumPostStateUserBalances;
+    uint256 public ghost_totalUserDeposits;
+    bool private ghost_initialized;
     Vm internal constant vm = Vm(address(uint160(uint256(keccak256("hevm cheat code")))));
 
     constructor() {
         weth = new WETH9();
-        sumPostStateUserBalances = 0;
+        ghost_totalUserDeposits = 0;
+        ghost_initialized = false;
+    }
+
+    function initializeGhostVariable(
+        uint256 precondition
+    ) public {
+        require(!ghost_initialized, "Ghost variable already initialized");
+        ghost_totalUserDeposits = precondition;
+        ghost_initialized = true;
     }
 
     receive() external payable {
         vm.prank(msg.sender);
         weth.deposit{value: msg.value}();
-        sumPostStateUserBalances += msg.value;
+        ghost_totalUserDeposits += msg.value;
     }
 
     fallback() external payable {
         vm.prank(msg.sender);
         weth.deposit{value: msg.value}();
-        sumPostStateUserBalances += msg.value;
+        ghost_totalUserDeposits += msg.value;
     }
 
     function deposit() public payable {
         vm.prank(msg.sender);
         weth.deposit{value: msg.value}();
-        sumPostStateUserBalances += msg.value;
+        ghost_totalUserDeposits += msg.value;
     }
 
     function withdraw(
@@ -37,7 +47,7 @@ contract WETH9Harness {
     ) public {
         vm.prank(msg.sender);
         weth.withdraw(wad);
-        sumPostStateUserBalances -= wad;
+        ghost_totalUserDeposits -= wad;
     }
 
     function totalSupply() public view returns (uint256) {

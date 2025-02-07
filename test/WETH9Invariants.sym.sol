@@ -12,18 +12,19 @@ contract WETH9InvariantsTest is WETH9SymbolicSetup {
     uint256 internal constant NUM_ACTIONS = 3;
     uint256 internal totalInitialUsersWEth;
     uint256 public totalInitialUserETH;
-    uint256 public preconditionUniverseWethBalances; /// TODO: Take preconditions as constructor args?
+    uint256 public preconditionWethBalances;
+    /// TODO: Take preconditions as constructor args?
 
     function setUp() public override {
         super.setUp();
 
         // Enable symbolic storage for both WETH and harness
         svm.enableSymbolicStorage(address(harness.weth()));
-        svm.enableSymbolicStorage(address(harness));
 
         // Create symbolic initial state for non-user balances
-        preconditionUniverseWethBalances = svm.createUint256("initial_weth_balance");
-        vm.deal(address(weth), preconditionUniverseWethBalances);
+        preconditionWethBalances = svm.createUint256("initial_weth_balance");
+        vm.deal(address(weth), preconditionWethBalances);
+        harness.initializeGhostVariable(preconditionWethBalances);
 
         User user;
         for (uint256 i = 0; i < NUM_USERS; i++) {
@@ -41,31 +42,24 @@ contract WETH9InvariantsTest is WETH9SymbolicSetup {
         }
 
         // Relate total supply to sum of all balances with overflow protection
-        vm.assume(
-            harness.sumPostStateUserBalances()
-                <= type(uint256).max - preconditionUniverseWethBalances
-        );
-        vm.assume(
-            harness.sumPostStateUserBalances() + preconditionUniverseWethBalances
-                == weth.totalSupply()
-        );
+        vm.assume(harness.ghost_totalUserDeposits() <= type(uint256).max);
+        vm.assume(harness.ghost_totalUserDeposits() == weth.totalSupply());
     }
 
     function check_solvencyDeposits() public {
-        User user;
-        // Perform symbolic actions
-        for (uint256 i = 0; i < NUM_ACTIONS; i++) {
+        for (uint256 i; i < NUM_ACTIONS; i++) {
             bytes memory data = createWethCalldata();
             uint256 randIndex = svm.createUint256(string.concat("rand_index", Strings.toString(i)));
-            user = User(getUserAt(randIndex % usersCount()));
+
+            User user = User(getUserAt(randIndex % usersCount()));
 
             uint256 snapshotBefore = svm.snapshotStorage(address(weth));
             if (bytes4(data) == IWETH.deposit.selector) {
                 uint256 value =
                     svm.createUint256(string.concat("value_action", Strings.toString(i)));
-                user.execute{value: value}(address(weth), data);
+                user.execute{value: value}(address(harness), data);
             } else {
-                user.execute(address(weth), data);
+                user.execute(address(harness), data);
             }
             uint256 snapshotAfter = svm.snapshotStorage(address(weth));
             vm.assume(snapshotBefore != snapshotAfter);
@@ -77,8 +71,7 @@ contract WETH9InvariantsTest is WETH9SymbolicSetup {
     }
 
     function check_depositorBalances() public {
-        // Perform symbolic actions with constrained values
-        for (uint256 i = 0; i < NUM_ACTIONS; i++) {
+        for (uint256 i; i < NUM_ACTIONS; i++) {
             bytes memory data = createWethCalldata();
             uint256 randIndex = svm.createUint256(string.concat("rand_index", Strings.toString(i)));
             User user = User(getUserAt(randIndex % usersCount()));
@@ -88,9 +81,9 @@ contract WETH9InvariantsTest is WETH9SymbolicSetup {
             if (bytes4(data) == IWETH.deposit.selector) {
                 uint256 value =
                     svm.createUint256(string.concat("value_action", Strings.toString(i)));
-                user.execute{value: value}(address(weth), data);
+                user.execute{value: value}(address(harness), data);
             } else {
-                user.execute(address(weth), data);
+                user.execute(address(harness), data);
             }
             uint256 snapshotAfter = svm.snapshotStorage(address(weth));
             vm.assume(snapshotBefore != snapshotAfter);
@@ -98,8 +91,7 @@ contract WETH9InvariantsTest is WETH9SymbolicSetup {
 
         // Check invariant: all balances <= total supply
         uint256 currentTotalSupply = weth.totalSupply();
-        uint256 totalDeposits =
-            harness.sumPostStateUserBalances() + preconditionUniverseWethBalances;
+        uint256 totalDeposits = harness.ghost_totalUserDeposits() + preconditionWethBalances;
         assertEq(totalDeposits, currentTotalSupply, "Supply mismatch");
     }
 }
