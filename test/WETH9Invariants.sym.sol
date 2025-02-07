@@ -59,7 +59,6 @@ contract WETH9InvariantsTest is WETH9SymbolicSetup {
         vm.assume(harness.ghost_totalUserDeposits() == weth.totalSupply());
     }
 
-    /// Verifies that the sum of all user balances (including symbolic users) equals the total supply.
     /// This test is expected to fail since there may be other symbolic users with balances not accounted for
     function check_symbolic_user_fail() public {
         uint256 symbolicUserBalance = weth.balanceOf(symbolicExternalUser);
@@ -70,7 +69,7 @@ contract WETH9InvariantsTest is WETH9SymbolicSetup {
         }
         vm.assume(symbolicUserBalance != 0);
         uint256 observedUserBalances = totalUserBalances + symbolicUserBalance;
-        /// assertEq should have a counter example -
+        /// assertEq should have a counter example - afaict
         /// I was expecting assertLe to be the only one that passes since there might be multiple symbolic users with balances in weth's symbolic storage
         assertEq(observedUserBalances, weth.totalSupply(), "Total balances exceed supply");
     }
