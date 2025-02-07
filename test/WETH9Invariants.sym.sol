@@ -46,7 +46,7 @@ contract WETH9InvariantsTest is WETH9SymbolicSetup {
         vm.assume(harness.ghost_totalUserDeposits() == weth.totalSupply());
     }
 
-    function check_solvencyDeposits() public {
+    function check_solvency() public {
         for (uint256 i; i < NUM_ACTIONS; i++) {
             bytes memory data = createWethCalldata();
             uint256 randIndex = svm.createUint256(string.concat("rand_index", Strings.toString(i)));
@@ -70,7 +70,7 @@ contract WETH9InvariantsTest is WETH9SymbolicSetup {
         assertEq(address(weth).balance, totalSupply);
     }
 
-    function check_depositorBalances() public {
+    function check_deposits() public {
         for (uint256 i; i < NUM_ACTIONS; i++) {
             bytes memory data = createWethCalldata();
             uint256 randIndex = svm.createUint256(string.concat("rand_index", Strings.toString(i)));
