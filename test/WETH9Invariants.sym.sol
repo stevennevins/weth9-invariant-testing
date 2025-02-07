@@ -57,7 +57,9 @@ contract WETH9InvariantsTest is WETH9SymbolicSetup {
         vm.assume(harness.ghost_totalUserDeposits() == weth.totalSupply());
     }
 
-    function check_symbolic_user_balance_fail() public {
+    /// Verifies that the sum of all user balances (including symbolic users) equals the total supply.
+    /// This test is expected to fail since there may be other symbolic users with balances not accounted for
+    function check_symbolic_user_fail() public {
         uint256 symbolicUserBalance = weth.balanceOf(symbolicExternalUser);
         uint256 totalUserBalances = 0;
         for (uint256 i = 0; i < NUM_USERS; i++) {
