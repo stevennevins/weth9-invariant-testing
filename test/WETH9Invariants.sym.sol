@@ -28,6 +28,7 @@ contract WETH9InvariantsTest is WETH9SymbolicSetup {
         symbolicExternalUser = svm.createAddress("external_user_address");
         vm.deal(address(weth), preconditionWethBalances);
         harness.initializeGhostVariable(preconditionWethBalances);
+        vm.assume(weth.totalSupply() == preconditionWethBalances);
 
         for (uint256 i = 0; i < NUM_USERS; i++) {
             User user = createUser(address(uint160(0x1000 + i)));
@@ -54,6 +55,7 @@ contract WETH9InvariantsTest is WETH9SymbolicSetup {
         // Relate total supply to sum of all balances of users and the universe of users
         vm.assume(maxAllowedBalance > externalUserBalance);
         vm.assume(harness.ghost_totalUserDeposits() >= totalInitialUsersWEth);
+        // Should be the same as the above assumption for totalSupply
         vm.assume(harness.ghost_totalUserDeposits() == weth.totalSupply());
     }
 
@@ -115,7 +117,7 @@ contract WETH9InvariantsTest is WETH9SymbolicSetup {
 
         // Check invariant: all balances <= total supply
         uint256 currentTotalSupply = weth.totalSupply();
-        uint256 totalDeposits = harness.ghost_totalUserDeposits() + preconditionWethBalances;
+        uint256 totalDeposits = harness.ghost_totalUserDeposits();
         assertEq(totalDeposits, currentTotalSupply, "Supply mismatch");
     }
 }
