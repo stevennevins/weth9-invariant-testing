@@ -80,6 +80,7 @@ contract Universe is Test {
         require(bytes(label).length > 0, "Label cannot be empty");
         require(userAddresses[label] == address(0), "Label already in use");
         require(!_targetAddresses.contains(user), "Address is already a target");
+        require(!_users.contains(user), "Address is already a user");
         _users.add(user);
         userLabels[user] = label;
         userAddresses[label] = user;

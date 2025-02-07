@@ -12,14 +12,6 @@ contract WETH9PropertiesTest is WETH9SymbolicSetup {
         assert(address(user).code.length > 0);
     }
 
-    function check_concreteUserCreation() public {
-        address addr = address(0x1003);
-        User user = createConcreteUser(addr);
-
-        assert(address(user).code.length > 0);
-        assert(address(user) == addr);
-    }
-
     function check_deposit() public {
         User user = createUser();
         uint256 depositAmount = svm.createUint256("depositAmount");

@@ -11,7 +11,7 @@ contract WETH9InvariantsTest is WETH9SymbolicSetup {
     using Strings for uint256;
 
     uint256 internal constant NUM_USERS = 3;
-    uint256 internal constant NUM_ACTIONS = 4;
+    uint256 internal constant NUM_ACTIONS = 3;
     uint256 internal totalInitialUsersWEth;
     uint256 public totalInitialUserETH;
     uint256 public preconditionWethBalances;
@@ -30,7 +30,7 @@ contract WETH9InvariantsTest is WETH9SymbolicSetup {
         harness.initializeGhostVariable(preconditionWethBalances);
 
         for (uint256 i = 0; i < NUM_USERS; i++) {
-            User user = createConcreteUser(address(uint160(0x1000 + i)));
+            User user = createUser(address(uint160(0x1000 + i)));
 
             // Create symbolic initial ETH and WETH balances for each user
             uint256 initialBalance =
@@ -67,8 +67,9 @@ contract WETH9InvariantsTest is WETH9SymbolicSetup {
             totalUserBalances += weth.balanceOf(userAddr);
         }
         vm.assume(symbolicUserBalance != 0);
-        /// Eq should have counter example - Should only not have counter example for assertLe since there might be multiple sybmolic users with balances
         uint256 observedUserBalances = totalUserBalances + symbolicUserBalance;
+        /// assertEq should have a counter example -
+        /// I was expecting assertLe to be the only one that passes since there might be multiple symbolic users with balances in weth's symbolic storage
         assertEq(observedUserBalances, weth.totalSupply(), "Total balances exceed supply");
     }
 

@@ -10,6 +10,8 @@ import {SymTest} from "halmos-cheatcodes/SymTest.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
 contract WETH9SymbolicSetup is Test, Universe, SymTest {
+    using Strings for uint256;
+
     bytes internal userCode = address(new User(address(this))).code;
     WETH9Harness internal harness;
 
@@ -25,22 +27,16 @@ contract WETH9SymbolicSetup is Test, Universe, SymTest {
         return svm.createCalldata(name, false);
     }
 
-    function createUser() internal returns (User) {
-        address symCreator = svm.createAddress("User_Creator");
-        string memory label = string(abi.encodePacked("User_", Strings.toString(usersCount() + 1)));
-        vm.prank(symCreator);
-        User user = new User(address(this));
-        addUser(address(user), label);
-        return user;
-    }
-
-    function createConcreteUser(
+    function createUser(
         address addr
     ) internal returns (User) {
-        string memory label =
-            string(abi.encodePacked("ConcreteUser_", Strings.toString(usersCount() + 1)));
-        vm.etch(addr, userCode);
+        string memory label = string.concat("User_", (usersCount() + 1).toString());
         addUser(addr, label);
+        vm.etch(addr, userCode);
         return User(addr);
+    }
+
+    function createUser() internal returns (User) {
+        return createUser(address(uint160(0x1000 + usersCount())));
     }
 }
