@@ -3,7 +3,7 @@ pragma solidity ^0.8.21;
 
 import {Test} from "forge-std/Test.sol";
 import {WETH9} from "../src/WETH9.sol";
-import {UserHandler} from "./User.sol";
+import {User} from "./User.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 contract ActorManager is Test {
@@ -13,13 +13,13 @@ contract ActorManager is Test {
     uint256 internal _numCalls;
     mapping(uint256 => uint256) internal _actionCalls;
 
-    EnumerableSet.AddressSet private userHandlerMap;
+    EnumerableSet.AddressSet private users;
 
     constructor(WETH9 _weth, uint256 numHandlers) {
         weth = _weth;
 
         for (uint256 i = 0; i < numHandlers; i++) {
-            userHandlerMap.add(address(new UserHandler(_weth)));
+            users.add(address(new User(_weth)));
         }
     }
 
@@ -27,19 +27,21 @@ contract ActorManager is Test {
         return _numCalls;
     }
 
-    function actionCalls(uint256 index) external view returns (uint256) {
+    function actionCalls(
+        uint256 index
+    ) external view returns (uint256) {
         return _actionCalls[index];
     }
 
-    function numUserHandlers() external view returns (uint256) {
-        return userHandlerMap.length();
+    function numUsers() external view returns (uint256) {
+        return users.length();
     }
 
-    function userHandlers(
+    function userAt(
         uint256 index
-    ) external view returns (UserHandler) {
-        address payable handlerAddr = payable(userHandlerMap.at(index));
-        return UserHandler(handlerAddr);
+    ) external view returns (User) {
+        address payable handlerAddr = payable(users.at(index));
+        return User(handlerAddr);
     }
 
     function fuzzedFallback() external {
@@ -47,14 +49,14 @@ contract ActorManager is Test {
     }
 
     function _dispatchRandomAction(
-        uint256 handlerIndex,
+        uint256 userIndex,
         uint256 actionIndex,
         uint256 amount
     ) internal {
         _numCalls++;
-        handlerIndex = handlerIndex % userHandlerMap.length();
-        address payable handlerAddr = payable(userHandlerMap.at(handlerIndex));
-        UserHandler handler = UserHandler(handlerAddr);
+        userIndex = userIndex % users.length();
+        address payable userAddr = payable(users.at(userIndex));
+        User user = User(userAddr);
         /// uint256 results in a large proportion of reverts
         /// _bound doesnt clutter the logs
         amount = _bound(amount, 0, type(uint128).max);
@@ -63,13 +65,13 @@ contract ActorManager is Test {
         _actionCalls[actionIndex]++;
 
         if (actionIndex == 0) {
-            handler.depositETH(amount);
+            user.deposit(amount);
         } else if (actionIndex == 1) {
-            handler.withdrawWETH(amount);
+            user.withdraw(amount);
         } else if (actionIndex == 2) {
-            uint256 randomIndex = vm.randomUint() % userHandlerMap.length();
-            address randomHandler = userHandlerMap.at(randomIndex);
-            handler.transferWETH(randomHandler, amount);
+            uint256 randomIndex = vm.randomUint() % users.length();
+            address randomHandler = users.at(randomIndex);
+            user.transfer(randomHandler, amount);
         } else {
             revert("Unsupported action");
         }

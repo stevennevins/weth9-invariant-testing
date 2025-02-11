@@ -4,7 +4,7 @@ pragma solidity ^0.8.21;
 import {Vm} from "forge-std/Vm.sol";
 import {WETH9} from "../src/WETH9.sol";
 
-contract UserHandler {
+contract User {
     Vm internal constant vm = Vm(address(uint160(uint256(keccak256("hevm cheat code")))));
     WETH9 internal weth;
 
@@ -14,7 +14,7 @@ contract UserHandler {
         weth = _weth;
     }
 
-    function depositETH(
+    function deposit(
         uint256 amount
     ) external {
         vm.deal(address(this), amount);
@@ -22,13 +22,13 @@ contract UserHandler {
         weth.deposit{value: amount}();
     }
 
-    function withdrawWETH(
+    function withdraw(
         uint256 amount
     ) external {
         weth.withdraw(amount);
     }
 
-    function transferWETH(address to, uint256 amount) external {
+    function transfer(address to, uint256 amount) external {
         weth.transfer(to, amount);
     }
 

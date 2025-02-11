@@ -3,7 +3,7 @@ pragma solidity ^0.8.21;
 
 import {Test, console2 as console} from "forge-std/Test.sol";
 import {WETH9} from "../src/WETH9.sol";
-import {UserHandler} from "./User.sol";
+import {User} from "./User.sol";
 import {ActorManager} from "./ActorManager.sol";
 
 contract WETH_InvariantTest is Test {
@@ -15,10 +15,11 @@ contract WETH_InvariantTest is Test {
         actorManager = new ActorManager(weth, 10);
 
         excludeContract(address(weth));
-        for (uint256 i = 0; i < actorManager.numUserHandlers(); i++) {
-            excludeContract(address(actorManager.userHandlers(i)));
+        for (uint256 i = 0; i < actorManager.numUsers(); i++) {
+            excludeContract(address(actorManager.userAt(i)));
         }
-        excludeContract(address(actorManager)); /// exclude and then enable just the fuzzedFallback
+        excludeContract(address(actorManager));
+        /// exclude and then enable just the fuzzedFallback
         bytes4[] memory selectors = new bytes4[](1);
         selectors[0] = actorManager.fuzzedFallback.selector;
         targetSelector(FuzzSelector(address(actorManager), selectors));
@@ -26,8 +27,8 @@ contract WETH_InvariantTest is Test {
 
     function invariant_globalEtherMatchesHandlerState() external view {
         uint256 aggregated;
-        for (uint256 i = 0; i < actorManager.numUserHandlers(); i++) {
-            UserHandler handler = actorManager.userHandlers(i);
+        for (uint256 i = 0; i < actorManager.numUsers(); i++) {
+            User handler = actorManager.userAt(i);
             aggregated += weth.balanceOf(address(handler));
         }
         assertEq(aggregated, weth.totalSupply());
