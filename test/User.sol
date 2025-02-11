@@ -1,34 +1,34 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.6.0 <0.9.0;
+pragma solidity ^0.8.21;
 
-import {Universe} from "./Universe.sol";
-import {IWETH} from "../src/IWETH.sol";
-import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
-import {console2} from "forge-std/Test.sol";
+import {Vm} from "forge-std/Vm.sol";
+import {WETH9} from "../src/WETH9.sol";
 
-contract User {
-    Universe internal immutable universe;
+contract UserHandler {
+    Vm internal constant vm = Vm(address(uint160(uint256(keccak256("hevm cheat code")))));
+    WETH9 internal weth;
 
     constructor(
-        address _universe
+        WETH9 _weth
     ) {
-        universe = Universe(_universe);
+        weth = _weth;
     }
 
-    function execute(address target, bytes memory data) external payable returns (bool) {
-        (bool success,) = target.call{value: msg.value}(data);
-        return success;
+    function depositETH(
+        uint256 amount
+    ) external {
+        vm.deal(address(this), amount);
+
+        weth.deposit{value: amount}();
     }
 
-    // Get user's WETH balance
-    function getWETHBalance() external view returns (uint256) {
-        return universe.weth().balanceOf(address(this));
+    function withdrawWETH(
+        uint256 amount
+    ) external {
+        weth.withdraw(amount);
     }
 
-    // Get allowance granted to another address
-    function getWETHAllowance(
-        address spender
-    ) external view returns (uint256) {
-        return universe.weth().allowance(address(this), spender);
+    function transferWETH(address to, uint256 amount) external {
+        weth.transfer(to, amount);
     }
 }
