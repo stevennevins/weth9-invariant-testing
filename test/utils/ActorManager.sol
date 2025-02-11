@@ -2,7 +2,7 @@
 pragma solidity ^0.8.21;
 
 import {Test} from "forge-std/Test.sol";
-import {WETH9} from "../src/WETH9.sol";
+import {WETH9} from "../../src/WETH9.sol";
 import {User} from "./User.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 

@@ -2,7 +2,7 @@
 pragma solidity ^0.8.21;
 
 import {Vm} from "forge-std/Vm.sol";
-import {WETH9} from "../src/WETH9.sol";
+import {WETH9} from "../../src/WETH9.sol";
 
 contract User {
     Vm internal constant vm = Vm(address(uint160(uint256(keccak256("hevm cheat code")))));

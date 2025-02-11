@@ -3,8 +3,8 @@ pragma solidity ^0.8.21;
 
 import {Test, console2 as console} from "forge-std/Test.sol";
 import {WETH9} from "../src/WETH9.sol";
-import {User} from "./User.sol";
-import {ActorManager} from "./ActorManager.sol";
+import {User} from "./utils/User.sol";
+import {ActorManager} from "./utils/ActorManager.sol";
 
 contract WETH_InvariantTest is Test {
     WETH9 internal weth;
