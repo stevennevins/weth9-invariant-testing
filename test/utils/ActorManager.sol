@@ -54,26 +54,42 @@ contract ActorManager is Test {
         uint256 amount
     ) internal {
         _numCalls++;
-        userIndex = userIndex % users.length();
-        address payable userAddr = payable(users.at(userIndex));
-        User user = User(userAddr);
-        /// uint256 results in a large proportion of reverts
-        /// _bound doesnt clutter the logs
-        amount = _bound(amount, 0, type(uint128).max);
+        User user = _getUser(userIndex);
+        amount = _boundAmount(amount);
 
-        actionIndex = actionIndex % 3;
+        actionIndex = _bound(actionIndex, 0, 2);
         _actionCalls[actionIndex]++;
 
+        _executeAction(actionIndex, user, amount);
+    }
+
+    function _getUser(uint256 userIndex) internal view returns (User) {
+        userIndex = _bound(userIndex, 0, users.length() - 1);
+        address payable userAddr = payable(users.at(userIndex));
+        return User(userAddr);
+    }
+
+    function _boundAmount(uint256 amount) internal pure returns (uint256) {
+        /// uint256 results in a large proportion of reverts
+        /// _bound doesnt clutter the logs
+        return _bound(amount, 0, type(uint128).max);
+    }
+
+    function _executeAction(uint256 actionIndex, User user, uint256 amount) internal {
         if (actionIndex == 0) {
             user.deposit(amount);
         } else if (actionIndex == 1) {
             user.withdraw(amount);
         } else if (actionIndex == 2) {
-            uint256 randomIndex = vm.randomUint() % users.length();
-            address randomHandler = users.at(randomIndex);
+            address randomHandler = _getRandomUserAddress();
             user.transfer(randomHandler, amount);
         } else {
             revert("Unsupported action");
         }
+    }
+
+    function _getRandomUserAddress() internal returns (address) {
+        uint256 randomIndex = _bound(vm.randomUint(), 0, users.length() - 1);
+        return users.at(randomIndex);
     }
 }
