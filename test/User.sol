@@ -31,4 +31,6 @@ contract UserHandler {
     function transferWETH(address to, uint256 amount) external {
         weth.transfer(to, amount);
     }
+
+    receive() external payable {}
 }

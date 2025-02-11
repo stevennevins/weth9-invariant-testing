@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.21;
 
-import {Test} from "forge-std/Test.sol";
+import {Test, console2 as console} from "forge-std/Test.sol";
 import {WETH9} from "../src/WETH9.sol";
 import {UserHandler} from "./User.sol";
 import {ActorManager} from "./ActorManager.sol";
@@ -12,14 +12,15 @@ contract WETH_InvariantTest is Test {
 
     function setUp() public {
         weth = new WETH9();
-        actorManager = new ActorManager(weth, 3);
+        actorManager = new ActorManager(weth, 10);
 
-        bytes4[] memory selectors = new bytes4[](1);
-        selectors[0] = actorManager.fuzzedFallback.selector;
         excludeContract(address(weth));
         for (uint256 i = 0; i < actorManager.numUserHandlers(); i++) {
             excludeContract(address(actorManager.userHandlers(i)));
         }
+        excludeContract(address(actorManager)); /// exclude and then enable just the fuzzedFallback
+        bytes4[] memory selectors = new bytes4[](1);
+        selectors[0] = actorManager.fuzzedFallback.selector;
         targetSelector(FuzzSelector(address(actorManager), selectors));
     }
 
@@ -30,5 +31,13 @@ contract WETH_InvariantTest is Test {
             aggregated += weth.balanceOf(address(handler));
         }
         assertEq(aggregated, weth.totalSupply());
+    }
+
+    function afterInvariant() external view {
+        console.log("Total successful calls made:", actorManager.numCalls());
+        console.log("Action call distribution:");
+        console.log("- Deposits:", actorManager.actionCalls(0));
+        console.log("- Withdrawals:", actorManager.actionCalls(1));
+        console.log("- Transfers:", actorManager.actionCalls(2));
     }
 }

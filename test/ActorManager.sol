@@ -10,6 +10,9 @@ contract ActorManager is Test {
     using EnumerableSet for EnumerableSet.AddressSet;
 
     WETH9 internal weth;
+    uint256 internal _numCalls;
+    mapping(uint256 => uint256) internal _actionCalls;
+
     EnumerableSet.AddressSet private userHandlerMap;
 
     constructor(WETH9 _weth, uint256 numHandlers) {
@@ -20,14 +23,23 @@ contract ActorManager is Test {
         }
     }
 
-    function numUserHandlers() public view returns (uint256) {
+    function numCalls() external view returns (uint256) {
+        return _numCalls;
+    }
+
+    function actionCalls(uint256 index) external view returns (uint256) {
+        return _actionCalls[index];
+    }
+
+    function numUserHandlers() external view returns (uint256) {
         return userHandlerMap.length();
     }
 
     function userHandlers(
         uint256 index
-    ) public view returns (UserHandler) {
-        return UserHandler(userHandlerMap.at(index));
+    ) external view returns (UserHandler) {
+        address payable handlerAddr = payable(userHandlerMap.at(index));
+        return UserHandler(handlerAddr);
     }
 
     function fuzzedFallback() external {
@@ -39,12 +51,16 @@ contract ActorManager is Test {
         uint256 actionIndex,
         uint256 amount
     ) internal {
+        _numCalls++;
         handlerIndex = handlerIndex % userHandlerMap.length();
-        address handlerAddr = userHandlerMap.at(handlerIndex);
+        address payable handlerAddr = payable(userHandlerMap.at(handlerIndex));
         UserHandler handler = UserHandler(handlerAddr);
-        amount = bound(amount, 0, type(uint128).max); /// uint256 results in a large proportion of reverts
+        /// uint256 results in a large proportion of reverts
+        /// _bound doesnt clutter the logs
+        amount = _bound(amount, 0, type(uint128).max);
 
         actionIndex = actionIndex % 3;
+        _actionCalls[actionIndex]++;
 
         if (actionIndex == 0) {
             handler.depositETH(amount);

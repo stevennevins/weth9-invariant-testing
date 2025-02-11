@@ -2,18 +2,16 @@
 src = "src"
 out = "out"
 libs = ["lib"]
-evm_version = "cancun"
-solc_version = "0.8.27"
 
 remappings = [
     "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",
-    "halmos-cheatcodes/=lib/halmos-cheatcodes/src/",
     "forge-std/=lib/forge-std/src/"
 ]
 
 [profile.default.invariant]
 runs = 100
 depth = 1000
+show_metrics = true
 
 [fmt]
 bracket_spacing = false
