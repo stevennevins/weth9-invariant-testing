@@ -1,35 +1,39 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.21;
 
-import {Vm} from "forge-std/Vm.sol";
-import {WETH9} from "../../src/WETH9.sol";
+import {WETH9Harness} from "./WETH9Harness.sol";
 
 contract User {
-    Vm internal constant vm = Vm(address(uint160(uint256(keccak256("hevm cheat code")))));
-    WETH9 internal weth;
+    WETH9Harness internal wethHarness;
 
     constructor(
-        WETH9 _weth
+        WETH9Harness _wethHarness
     ) {
-        weth = _weth;
+        wethHarness = _wethHarness;
     }
 
     function deposit(
         uint256 amount
     ) external {
-        vm.deal(address(this), amount);
-
-        weth.deposit{value: amount}();
+        wethHarness.deposit(amount);
     }
 
     function withdraw(
         uint256 amount
     ) external {
-        weth.withdraw(amount);
+        wethHarness.withdraw(amount);
     }
 
     function transfer(address to, uint256 amount) external {
-        weth.transfer(to, amount);
+        wethHarness.transfer(to, amount);
+    }
+
+    function approve(address spender, uint256 amount) external {
+        wethHarness.approve(spender, amount);
+    }
+
+    function transferFrom(address from, address to, uint256 amount) external {
+        wethHarness.transferFrom(from, to, amount);
     }
 
     receive() external payable {}

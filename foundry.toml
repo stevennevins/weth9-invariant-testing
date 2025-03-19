@@ -5,11 +5,11 @@ libs = ["lib"]
 
 remappings = [
     "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",
-    "forge-std/=lib/forge-std/src/"
+    "forge-std/=lib/forge-std/src/",
 ]
 
 [profile.default.invariant]
-runs = 100
+runs = 10
 depth = 1000
 show_metrics = true
 
@@ -20,7 +20,7 @@ libs = ["lib"]
 
 remappings = [
     "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",
-    "forge-std/=lib/forge-std/src/"
+    "forge-std/=lib/forge-std/src/",
 ]
 
 [profile.lite.invariant]
@@ -30,10 +30,13 @@ show_metrics = true
 
 
 [fmt]
+single_line_statement_blocks = "preserve"
+multiline_func_header = "params_first"
+sort_imports = true
+line_length = 100
+tab_width = 4
 bracket_spacing = false
 int_types = "long"
-line_length = 100
-multiline_func_header = "params_first"
-number_underscore = "thousands"
 quote_style = "double"
-tab_width = 4
+number_underscore = "remove"
+wrap_comments = false

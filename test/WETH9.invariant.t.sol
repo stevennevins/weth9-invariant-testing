@@ -1,44 +1,53 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.21;
 
-import {Test, console2 as console} from "forge-std/Test.sol";
 import {WETH9} from "../src/WETH9.sol";
 import {User} from "./utils/User.sol";
-import {ActorManager} from "./utils/ActorManager.sol";
+import {WETH9Harness} from "./utils/WETH9Harness.sol";
+import {Test, console2 as console} from "forge-std/Test.sol";
 
 contract WETH_InvariantTest is Test {
     WETH9 internal weth;
-    ActorManager internal actorManager;
+    WETH9Harness internal wethHarness;
+    User[] internal users;
+    uint256 internal constant NUM_USERS = 10;
 
     function setUp() public {
         weth = new WETH9();
-        actorManager = new ActorManager(weth, 10);
+        wethHarness = new WETH9Harness(address(weth));
+        vm.label(address(weth), "WETH9");
+        vm.label(address(wethHarness), "WETH9Harness");
 
-        excludeContract(address(weth));
-        for (uint256 i = 0; i < actorManager.numUsers(); i++) {
-            excludeContract(address(actorManager.userAt(i)));
+        for (uint256 i = 0; i < NUM_USERS; i++) {
+            users.push(new User(wethHarness));
         }
-        excludeContract(address(actorManager));
-        /// exclude and then enable just the fuzzedFallback
-        bytes4[] memory selectors = new bytes4[](1);
-        selectors[0] = actorManager.fuzzedFallback.selector;
-        targetSelector(FuzzSelector(address(actorManager), selectors));
+        excludeContract(address(weth));
+        excludeContract(address(wethHarness));
     }
 
-    function invariant_globalEtherMatchesHandlerState() external view {
-        uint256 aggregated;
-        for (uint256 i = 0; i < actorManager.numUsers(); i++) {
-            User handler = actorManager.userAt(i);
-            aggregated += weth.balanceOf(address(handler));
+    function invariant_ghostBalancesMatchActual() external view {
+        for (uint256 i = 0; i < users.length; i++) {
+            address user = address(users[i]);
+            assertEq(weth.balanceOf(user), wethHarness.ghostBalanceOf(user), "Balance mismatch");
         }
-        assertEq(aggregated, weth.totalSupply());
+    }
+
+    function invariant_ghostTotalSupplyMatchesActual() external view {
+        assertEq(weth.totalSupply(), wethHarness.ghostTotalSupply(), "Total supply mismatch");
+    }
+
+    function invariant_sumOfBalancesMatchesTotalSupply() external view {
+        address[] memory balanceHolders = wethHarness.getAllHolders();
+        uint256 userSum;
+
+        for (uint256 i = 0; i < balanceHolders.length; i++) {
+            userSum += weth.balanceOf(balanceHolders[i]);
+        }
+
+        assertEq(userSum, weth.totalSupply(), "Sum of tracked balances != total supply");
     }
 
     function afterInvariant() external view {
-        console.log("Total successful calls made:", actorManager.numCalls());
-        console.log("Action call distribution:");
-        console.log("- Deposits:", actorManager.actionCalls(0));
-        console.log("- Withdrawals:", actorManager.actionCalls(1));
-        console.log("- Transfers:", actorManager.actionCalls(2));
+        console.log("Post Campaign Logs");
     }
 }
