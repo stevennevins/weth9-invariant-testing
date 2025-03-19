@@ -61,7 +61,7 @@ contract WETH9Harness is StdUtils {
         ghostBalanceOf[msg.sender] -= wad;
         ghostTotalSupply -= wad;
 
-        _updateBalanceHolder(msg.sender, prevBalance, ghostBalanceOf[msg.sender]);
+        _updateHolders(msg.sender, prevBalance, ghostBalanceOf[msg.sender]);
 
         weth.withdraw(wad);
     }
@@ -75,8 +75,8 @@ contract WETH9Harness is StdUtils {
         ghostBalanceOf[msg.sender] -= wad;
         ghostBalanceOf[dst] += wad;
 
-        _updateBalanceHolder(msg.sender, senderPrev, ghostBalanceOf[msg.sender]);
-        _updateBalanceHolder(dst, recipientPrev, ghostBalanceOf[dst]);
+        _updateHolders(msg.sender, senderPrev, ghostBalanceOf[msg.sender]);
+        _updateHolders(dst, recipientPrev, ghostBalanceOf[dst]);
 
         return weth.transfer(dst, wad);
     }
@@ -97,8 +97,8 @@ contract WETH9Harness is StdUtils {
         ghostBalanceOf[src] -= wad;
         ghostBalanceOf[dst] += wad;
 
-        _updateBalanceHolder(src, senderPrev, ghostBalanceOf[src]);
-        _updateBalanceHolder(dst, recipientPrev, ghostBalanceOf[dst]);
+        _updateHolders(src, senderPrev, ghostBalanceOf[src]);
+        _updateHolders(dst, recipientPrev, ghostBalanceOf[dst]);
 
         return weth.transferFrom(src, dst, wad);
     }
@@ -158,16 +158,12 @@ contract WETH9Harness is StdUtils {
         ghostBalanceOf[msg.sender] += wad;
         ghostTotalSupply += wad;
 
-        _updateBalanceHolder(msg.sender, prevBalance, ghostBalanceOf[msg.sender]);
+        _updateHolders(msg.sender, prevBalance, ghostBalanceOf[msg.sender]);
 
         weth.deposit{value: wad}();
     }
 
-    function _updateBalanceHolder(
-        address account,
-        uint256 prevBalance,
-        uint256 newBalance
-    ) internal {
+    function _updateHolders(address account, uint256 prevBalance, uint256 newBalance) internal {
         if (prevBalance == 0 && newBalance > 0) {
             _holders.add(account);
         } else if (prevBalance > 0 && newBalance == 0) {
