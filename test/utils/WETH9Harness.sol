@@ -14,11 +14,17 @@ contract WETH9Harness is StdUtils {
 
     WETH9 internal weth;
 
-    mapping(address => uint256) public ghostBalanceOf;
-    mapping(address => mapping(address => uint256)) public ghostAllowance;
-    uint256 public ghostTotalSupply;
+    // WETH tracking variables
+    mapping(address => uint256) public ghostWethBalanceOf;
+    mapping(address => mapping(address => uint256)) public ghostWethAllowance;
+    uint256 public ghostWethTotalSupply;
 
-    EnumerableSet.AddressSet internal _holders;
+    // ETH tracking variables
+    mapping(address => uint256) public ghostEthBalanceOf;
+    uint256 public ghostTotalETH;
+    EnumerableSet.AddressSet internal _ethHolders;
+
+    EnumerableSet.AddressSet internal _wethHolders;
 
     modifier asCaller() {
         vm.startPrank(msg.sender);
@@ -36,7 +42,7 @@ contract WETH9Harness is StdUtils {
     function deposit(
         uint256 wad
     ) external payable asCaller {
-        wad = _bound(wad, 0, weth.balanceOf(msg.sender));
+        wad = _bound(wad, 0, msg.sender.balance);
         _deposit(wad);
     }
 
@@ -57,11 +63,17 @@ contract WETH9Harness is StdUtils {
     ) external asCaller {
         wad = _bound(wad, 0, weth.balanceOf(msg.sender));
 
-        uint256 prevBalance = ghostBalanceOf[msg.sender];
-        ghostBalanceOf[msg.sender] -= wad;
-        ghostTotalSupply -= wad;
+        uint256 prevBalance = ghostWethBalanceOf[msg.sender];
+        ghostWethBalanceOf[msg.sender] -= wad;
+        ghostWethTotalSupply -= wad;
 
-        _updateHolders(msg.sender, prevBalance, ghostBalanceOf[msg.sender]);
+        _updateWethHolders(msg.sender, prevBalance, ghostWethBalanceOf[msg.sender]);
+
+        uint256 prevEthBalance = ghostEthBalanceOf[msg.sender];
+        ghostEthBalanceOf[msg.sender] += wad;
+        ghostTotalETH += wad;
+
+        _updateEthHolders(msg.sender, prevEthBalance, ghostEthBalanceOf[msg.sender]);
 
         weth.withdraw(wad);
     }
@@ -69,44 +81,57 @@ contract WETH9Harness is StdUtils {
     function transfer(address dst, uint256 wad) external asCaller returns (bool) {
         wad = _bound(wad, 0, weth.balanceOf(msg.sender));
 
-        uint256 senderPrev = ghostBalanceOf[msg.sender];
-        uint256 recipientPrev = ghostBalanceOf[dst];
+        uint256 senderPrev = ghostWethBalanceOf[msg.sender];
+        uint256 recipientPrev = ghostWethBalanceOf[dst];
 
-        ghostBalanceOf[msg.sender] -= wad;
-        ghostBalanceOf[dst] += wad;
+        ghostWethBalanceOf[msg.sender] -= wad;
+        ghostWethBalanceOf[dst] += wad;
 
-        _updateHolders(msg.sender, senderPrev, ghostBalanceOf[msg.sender]);
-        _updateHolders(dst, recipientPrev, ghostBalanceOf[dst]);
+        _updateWethHolders(msg.sender, senderPrev, ghostWethBalanceOf[msg.sender]);
+        _updateWethHolders(dst, recipientPrev, ghostWethBalanceOf[dst]);
 
         return weth.transfer(dst, wad);
     }
 
     function transferFrom(address src, address dst, uint256 wad) external asCaller returns (bool) {
         bool needsAllowanceCheck =
-            src != msg.sender && ghostAllowance[src][msg.sender] != type(uint256).max;
+            src != msg.sender && ghostWethAllowance[src][msg.sender] != type(uint256).max;
         if (needsAllowanceCheck) {
-            wad = _bound(wad, 0, ghostAllowance[src][msg.sender]);
-            ghostAllowance[src][msg.sender] -= wad;
+            wad = _bound(wad, 0, ghostWethAllowance[src][msg.sender]);
+            ghostWethAllowance[src][msg.sender] -= wad;
         } else {
             wad = _bound(wad, 0, weth.balanceOf(src));
         }
 
-        uint256 senderPrev = ghostBalanceOf[src];
-        uint256 recipientPrev = ghostBalanceOf[dst];
+        uint256 senderPrev = ghostWethBalanceOf[src];
+        uint256 recipientPrev = ghostWethBalanceOf[dst];
 
-        ghostBalanceOf[src] -= wad;
-        ghostBalanceOf[dst] += wad;
+        ghostWethBalanceOf[src] -= wad;
+        ghostWethBalanceOf[dst] += wad;
 
-        _updateHolders(src, senderPrev, ghostBalanceOf[src]);
-        _updateHolders(dst, recipientPrev, ghostBalanceOf[dst]);
+        _updateWethHolders(src, senderPrev, ghostWethBalanceOf[src]);
+        _updateWethHolders(dst, recipientPrev, ghostWethBalanceOf[dst]);
 
         return weth.transferFrom(src, dst, wad);
     }
 
     function approve(address guy, uint256 wad) external asCaller returns (bool) {
-        ghostAllowance[msg.sender][guy] = wad;
+        ghostWethAllowance[msg.sender][guy] = wad;
 
         return weth.approve(guy, wad);
+    }
+
+    function dealETH(
+        uint256 amount
+    ) external asCaller {
+        amount = _bound(amount, 0, type(uint128).max);
+
+        uint256 prevEthBalance = ghostEthBalanceOf[msg.sender];
+        ghostEthBalanceOf[msg.sender] += amount;
+        ghostTotalETH += amount;
+        vm.deal(msg.sender, msg.sender.balance + amount);
+
+        _updateEthHolders(msg.sender, prevEthBalance, ghostEthBalanceOf[msg.sender]);
     }
 
     function totalSupply() external view returns (uint256) {
@@ -135,39 +160,71 @@ contract WETH9Harness is StdUtils {
         return weth.decimals();
     }
 
-    function getAllHolders() external view returns (address[] memory) {
-        return _holders.values();
+    function getAllWethHolders() external view returns (address[] memory) {
+        return _wethHolders.values();
     }
 
-    function getHoldersCount() external view returns (uint256) {
-        return _holders.length();
+    function getWethHoldersCount() external view returns (uint256) {
+        return _wethHolders.length();
     }
 
-    function isHolder(
+    function isWethHolder(
         address account
     ) external view returns (bool) {
-        return _holders.contains(account);
+        return _wethHolders.contains(account);
+    }
+
+    function getAllEthHolders() external view returns (address[] memory) {
+        return _ethHolders.values();
+    }
+
+    function getEthHoldersCount() external view returns (uint256) {
+        return _ethHolders.length();
+    }
+
+    function isEthHolder(
+        address account
+    ) external view returns (bool) {
+        return _ethHolders.contains(account);
     }
 
     function _deposit(
         uint256 wad
     ) internal {
-        vm.deal(msg.sender, wad);
+        wad = _bound(wad, 0, ghostEthBalanceOf[msg.sender]);
 
-        uint256 prevBalance = ghostBalanceOf[msg.sender];
-        ghostBalanceOf[msg.sender] += wad;
-        ghostTotalSupply += wad;
+        uint256 prevEthBalance = ghostEthBalanceOf[msg.sender];
+        ghostEthBalanceOf[msg.sender] -= wad;
+        ghostTotalETH -= wad;
 
-        _updateHolders(msg.sender, prevBalance, ghostBalanceOf[msg.sender]);
+        _updateEthHolders(msg.sender, prevEthBalance, ghostEthBalanceOf[msg.sender]);
+
+        uint256 prevBalance = ghostWethBalanceOf[msg.sender];
+        ghostWethBalanceOf[msg.sender] += wad;
+        ghostWethTotalSupply += wad;
+
+        _updateWethHolders(msg.sender, prevBalance, ghostWethBalanceOf[msg.sender]);
 
         weth.deposit{value: wad}();
     }
 
-    function _updateHolders(address account, uint256 prevBalance, uint256 newBalance) internal {
+    function _updateWethHolders(
+        address account,
+        uint256 prevBalance,
+        uint256 newBalance
+    ) internal {
         if (prevBalance == 0 && newBalance > 0) {
-            _holders.add(account);
+            _wethHolders.add(account);
         } else if (prevBalance > 0 && newBalance == 0) {
-            _holders.remove(account);
+            _wethHolders.remove(account);
+        }
+    }
+
+    function _updateEthHolders(address account, uint256 prevBalance, uint256 newBalance) internal {
+        if (prevBalance == 0 && newBalance > 0) {
+            _ethHolders.add(account);
+        } else if (prevBalance > 0 && newBalance == 0) {
+            _ethHolders.remove(account);
         }
     }
 }

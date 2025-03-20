@@ -36,5 +36,11 @@ contract User {
         wethHarness.transferFrom(from, to, amount);
     }
 
+    function dealETH(
+        uint256 amount
+    ) external {
+        wethHarness.dealETH(amount);
+    }
+
     receive() external payable {}
 }
