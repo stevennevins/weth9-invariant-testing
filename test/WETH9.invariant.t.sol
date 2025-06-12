@@ -17,7 +17,6 @@ contract WETH_InvariantTest is Test {
         vm.label(address(weth), "WETH9");
         vm.label(address(wethHarness), "WETH9Harness");
 
-
         for (uint256 i = 0; i < NUM_USERS; i++) {
             address sender = address(uint160(i + 1));
             targetSender(sender);
