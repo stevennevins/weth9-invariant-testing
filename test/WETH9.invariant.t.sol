@@ -5,7 +5,6 @@ import {WETH9} from "../src/WETH9.sol";
 import {WETH9Harness} from "./utils/WETH9Harness.sol";
 import {Test, console2 as console} from "forge-std/Test.sol";
 
-/// @custom:halmos --invariant-depth 2 --loop 2
 contract WETH_InvariantTest is Test {
     WETH9 internal weth;
     WETH9Harness internal wethHarness;

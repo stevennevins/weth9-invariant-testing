@@ -1,0 +1,9 @@
+[global]
+loop = 3                               # Set the loop unrolling bound.
+invariant-depth = 3                    # Set the loop unrolling bound.
+ffi = false                             # Enable the foreign function interface (ffi) cheatcode.
+statistics = false                      # Print the statistics.
+early-exit = true                      # Stop after a counterexample is found.
+cache-solver = true                    # Cache unsatisfiable queries using unsatisfiable cores.
+print-failed-states = true
+solver-timeout-assertion = 60000 # increased timeout
