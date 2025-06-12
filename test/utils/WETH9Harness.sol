@@ -2,10 +2,10 @@
 pragma solidity ^0.8.21;
 
 import {WETH9} from "../../src/WETH9.sol";
-import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+import {EnumerableSet} from "../../lib/openzeppelin-contracts/contracts/utils/structs/EnumerableSet.sol";
 
-import {StdUtils} from "forge-std/StdUtils.sol";
-import {Vm} from "forge-std/Vm.sol";
+import {StdUtils} from "../../lib/forge-std/src/StdUtils.sol";
+import {Vm} from "../../lib/forge-std/src/Vm.sol";
 
 contract WETH9Harness is StdUtils {
     using EnumerableSet for EnumerableSet.AddressSet;
@@ -13,6 +13,7 @@ contract WETH9Harness is StdUtils {
     Vm private constant vm = Vm(address(uint160(uint256(keccak256("hevm cheat code")))));
 
     WETH9 internal weth;
+    bool public isHalmos;
 
     // WETH tracking variables
     mapping(address => uint256) public ghostWethBalanceOf;
@@ -37,31 +38,40 @@ contract WETH9Harness is StdUtils {
     ) {
         require(_weth != address(0), "WETH9Harness: invalid WETH address");
         weth = WETH9(payable(_weth));
+        isHalmos = isHalmosEnv();
     }
 
     function deposit(
         uint256 wad
     ) external payable asCaller {
-        wad = _bound(wad, 0, msg.sender.balance);
+        if (!isHalmos) {
+            wad = _bound(wad, 0, msg.sender.balance);
+        }
         _deposit(wad);
     }
 
     receive() external payable asCaller {
         uint256 wad = msg.value;
-        wad = _bound(wad, 0, weth.balanceOf(msg.sender));
-        _deposit(msg.value);
+        if (!isHalmos) {
+            wad = _bound(wad, 0, weth.balanceOf(msg.sender));
+        }
+        _deposit(wad);
     }
 
     fallback() external payable asCaller {
         uint256 wad = msg.value;
-        wad = _bound(wad, 0, weth.balanceOf(msg.sender));
-        _deposit(msg.value);
+        if (!isHalmos) {
+            wad = _bound(wad, 0, weth.balanceOf(msg.sender));
+        }
+        _deposit(wad);
     }
 
     function withdraw(
         uint256 wad
     ) external asCaller {
-        wad = _bound(wad, 0, weth.balanceOf(msg.sender));
+        if (!isHalmos) {
+            wad = _bound(wad, 0, weth.balanceOf(msg.sender));
+        }
 
         uint256 prevBalance = ghostWethBalanceOf[msg.sender];
         ghostWethBalanceOf[msg.sender] -= wad;
@@ -79,7 +89,9 @@ contract WETH9Harness is StdUtils {
     }
 
     function transfer(address dst, uint256 wad) external asCaller returns (bool) {
-        wad = _bound(wad, 0, weth.balanceOf(msg.sender));
+        if (!isHalmos) {
+            wad = _bound(wad, 0, weth.balanceOf(msg.sender));
+        }
 
         uint256 senderPrev = ghostWethBalanceOf[msg.sender];
         uint256 recipientPrev = ghostWethBalanceOf[dst];
@@ -97,10 +109,14 @@ contract WETH9Harness is StdUtils {
         bool needsAllowanceCheck =
             src != msg.sender && ghostWethAllowance[src][msg.sender] != type(uint256).max;
         if (needsAllowanceCheck) {
-            wad = _bound(wad, 0, ghostWethAllowance[src][msg.sender]);
+            if (!isHalmos) {
+                wad = _bound(wad, 0, ghostWethAllowance[src][msg.sender]);
+            }
             ghostWethAllowance[src][msg.sender] -= wad;
         } else {
-            wad = _bound(wad, 0, weth.balanceOf(src));
+            if (!isHalmos) {
+                wad = _bound(wad, 0, weth.balanceOf(src));
+            }
         }
 
         uint256 senderPrev = ghostWethBalanceOf[src];
@@ -124,7 +140,9 @@ contract WETH9Harness is StdUtils {
     function dealETH(
         uint256 amount
     ) external asCaller {
-        amount = _bound(amount, 0, type(uint128).max);
+        if (!isHalmos) {
+            amount = _bound(amount, 0, type(uint128).max);
+        }
 
         uint256 prevEthBalance = ghostEthBalanceOf[msg.sender];
         ghostEthBalanceOf[msg.sender] += amount;
@@ -191,7 +209,9 @@ contract WETH9Harness is StdUtils {
     function _deposit(
         uint256 wad
     ) internal {
-        wad = _bound(wad, 0, ghostEthBalanceOf[msg.sender]);
+        if (!isHalmos) {
+            wad = _bound(wad, 0, ghostEthBalanceOf[msg.sender]);
+        }
 
         uint256 prevEthBalance = ghostEthBalanceOf[msg.sender];
         ghostEthBalanceOf[msg.sender] -= wad;
@@ -225,6 +245,14 @@ contract WETH9Harness is StdUtils {
             _ethHolders.add(account);
         } else if (prevBalance > 0 && newBalance == 0) {
             _ethHolders.remove(account);
+        }
+    }
+
+    function isHalmosEnv() public view returns (bool) {
+        try vm.envOr("HALMOS_TEST", false) returns (bool) {
+            return true;
+        } catch {
+            return false;
         }
     }
 }

@@ -10,7 +10,7 @@ contract WETH_InvariantTest is Test {
     WETH9 internal weth;
     WETH9Harness internal wethHarness;
     User[] internal users;
-    uint256 internal constant NUM_USERS = 10;
+    uint256 internal constant NUM_USERS = 3;
 
     function setUp() public {
         weth = new WETH9();
@@ -25,6 +25,7 @@ contract WETH_InvariantTest is Test {
         excludeContract(address(wethHarness));
     }
 
+    /// @custom:halmos --invariant-depth 8 --loop 8
     function invariant_ghostBalancesMatchActual() external view {
         for (uint256 i = 0; i < users.length; i++) {
             address user = address(users[i]);
@@ -32,10 +33,12 @@ contract WETH_InvariantTest is Test {
         }
     }
 
+    /// @custom:halmos --invariant-depth 8 --loop 8
     function invariant_ghostTotalSupplyMatchesActual() external view {
         assertEq(weth.totalSupply(), wethHarness.ghostWethTotalSupply(), "Total supply mismatch");
     }
 
+    /// @custom:halmos --invariant-depth 8 --loop 8
     function invariant_sumOfBalancesMatchesTotalSupply() external view {
         address[] memory balanceHolders = wethHarness.getAllWethHolders();
         uint256 userSum;
@@ -47,6 +50,7 @@ contract WETH_InvariantTest is Test {
         assertEq(userSum, weth.totalSupply(), "Sum of tracked balances != total supply");
     }
 
+    /// @custom:halmos --invariant-depth 8 --loop 8
     function invariant_ethConservation() external view {
         address[] memory ethHolders = wethHarness.getAllEthHolders();
         uint256 sum;

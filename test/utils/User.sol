@@ -43,4 +43,5 @@ contract User {
     }
 
     receive() external payable {}
+    /// TODO: should have receive?
 }
