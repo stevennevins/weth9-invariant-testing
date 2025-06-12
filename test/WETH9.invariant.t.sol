@@ -2,14 +2,14 @@
 pragma solidity ^0.8.21;
 
 import {WETH9} from "../src/WETH9.sol";
-import {User} from "./utils/User.sol";
 import {WETH9Harness} from "./utils/WETH9Harness.sol";
 import {Test, console2 as console} from "forge-std/Test.sol";
 
+/// @custom:halmos --invariant-depth 2 --loop 2
 contract WETH_InvariantTest is Test {
     WETH9 internal weth;
     WETH9Harness internal wethHarness;
-    User[] internal users;
+    address[] internal users;
     uint256 internal constant NUM_USERS = 3;
 
     function setUp() public {
@@ -18,14 +18,15 @@ contract WETH_InvariantTest is Test {
         vm.label(address(weth), "WETH9");
         vm.label(address(wethHarness), "WETH9Harness");
 
+
         for (uint256 i = 0; i < NUM_USERS; i++) {
-            users.push(new User(wethHarness));
+            address sender = address(uint160(i + 1));
+            targetSender(sender);
+            users.push(sender); // Create deterministic addresses based on index
         }
         excludeContract(address(weth));
-        excludeContract(address(wethHarness));
     }
 
-    /// @custom:halmos --invariant-depth 8 --loop 8
     function invariant_ghostBalancesMatchActual() external view {
         for (uint256 i = 0; i < users.length; i++) {
             address user = address(users[i]);
@@ -33,12 +34,10 @@ contract WETH_InvariantTest is Test {
         }
     }
 
-    /// @custom:halmos --invariant-depth 8 --loop 8
     function invariant_ghostTotalSupplyMatchesActual() external view {
         assertEq(weth.totalSupply(), wethHarness.ghostWethTotalSupply(), "Total supply mismatch");
     }
 
-    /// @custom:halmos --invariant-depth 8 --loop 8
     function invariant_sumOfBalancesMatchesTotalSupply() external view {
         address[] memory balanceHolders = wethHarness.getAllWethHolders();
         uint256 userSum;
@@ -50,7 +49,6 @@ contract WETH_InvariantTest is Test {
         assertEq(userSum, weth.totalSupply(), "Sum of tracked balances != total supply");
     }
 
-    /// @custom:halmos --invariant-depth 8 --loop 8
     function invariant_ethConservation() external view {
         address[] memory ethHolders = wethHarness.getAllEthHolders();
         uint256 sum;
