@@ -1,6 +1,7 @@
 [profile.default]
 src = "src"
 out = "out"
+test = "test"
 libs = ["lib"]
 
 remappings = [
@@ -27,7 +28,6 @@ remappings = [
 runs = 10
 depth = 100
 show_metrics = true
-
 
 [fmt]
 single_line_statement_blocks = "preserve"

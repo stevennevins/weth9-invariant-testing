@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.21;
 
+import {EnumerableSet} from
+    "../../lib/openzeppelin-contracts/contracts/utils/structs/EnumerableSet.sol";
 import {WETH9} from "../../src/WETH9.sol";
-import {EnumerableSet} from "../../lib/openzeppelin-contracts/contracts/utils/structs/EnumerableSet.sol";
 
 import {StdUtils} from "../../lib/forge-std/src/StdUtils.sol";
 import {Vm} from "../../lib/forge-std/src/Vm.sol";
@@ -44,25 +45,18 @@ contract WETH9Harness is StdUtils {
     function deposit(
         uint256 wad
     ) external payable asCaller {
-        if (!isHalmos) {
-            wad = _bound(wad, 0, msg.sender.balance);
-        }
+        vm.assume(msg.value == 0);
+
         _deposit(wad);
     }
 
     receive() external payable asCaller {
-        uint256 wad = msg.value;
-        if (!isHalmos) {
-            wad = _bound(wad, 0, weth.balanceOf(msg.sender));
-        }
+        uint256 wad = vm.randomUint();
         _deposit(wad);
     }
 
     fallback() external payable asCaller {
-        uint256 wad = msg.value;
-        if (!isHalmos) {
-            wad = _bound(wad, 0, weth.balanceOf(msg.sender));
-        }
+        uint256 wad = vm.randomUint();
         _deposit(wad);
     }
 
@@ -147,7 +141,7 @@ contract WETH9Harness is StdUtils {
         uint256 prevEthBalance = ghostEthBalanceOf[msg.sender];
         ghostEthBalanceOf[msg.sender] += amount;
         ghostTotalETH += amount;
-        vm.deal(msg.sender, msg.sender.balance + amount);
+        vm.deal(msg.sender,prevEthBalance + amount);
 
         _updateEthHolders(msg.sender, prevEthBalance, ghostEthBalanceOf[msg.sender]);
     }
@@ -209,10 +203,10 @@ contract WETH9Harness is StdUtils {
     function _deposit(
         uint256 wad
     ) internal {
+        vm.assume(msg.value == 0);
         if (!isHalmos) {
             wad = _bound(wad, 0, ghostEthBalanceOf[msg.sender]);
         }
-
         uint256 prevEthBalance = ghostEthBalanceOf[msg.sender];
         ghostEthBalanceOf[msg.sender] -= wad;
         ghostTotalETH -= wad;
@@ -249,8 +243,8 @@ contract WETH9Harness is StdUtils {
     }
 
     function isHalmosEnv() public view returns (bool) {
-        try vm.envOr("HALMOS_TEST", false) returns (bool) {
-            return true;
+        try vm.envOr("HALMOS_TEST", false) returns (bool halmosTest) {
+            return halmosTest;
         } catch {
             return false;
         }
