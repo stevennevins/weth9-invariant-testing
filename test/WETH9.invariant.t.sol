@@ -23,6 +23,8 @@ contract WETH_InvariantTest is Test {
             users.push(sender); // Create deterministic addresses based on index
         }
         excludeContract(address(weth));
+        excludeSender(address(weth)); // WETH should not be a sender
+        excludeSender(address(wethHarness)); // Harness should not be a sender
     }
 
     function invariant_ghostBalancesMatchActual() external view {

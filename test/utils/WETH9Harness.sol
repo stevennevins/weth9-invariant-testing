@@ -40,6 +40,10 @@ contract WETH9Harness is StdUtils {
         require(_weth != address(0), "WETH9Harness: invalid WETH address");
         weth = WETH9(payable(_weth));
         isHalmos = isHalmosEnv();
+
+        // Initialize WETH contract as an ETH holder with 0 balance
+        _ethHolders.add(_weth);
+        ghostEthBalanceOf[_weth] = 0;
     }
 
     function deposit(
@@ -73,9 +77,14 @@ contract WETH9Harness is StdUtils {
 
         _updateWethHolders(msg.sender, prevBalance, ghostWethBalanceOf[msg.sender]);
 
+        // Track ETH leaving WETH contract
+        uint256 prevWethEthBalance = ghostEthBalanceOf[address(weth)];
+        ghostEthBalanceOf[address(weth)] -= wad;
+        _updateEthHolders(address(weth), prevWethEthBalance, ghostEthBalanceOf[address(weth)]);
+
         uint256 prevEthBalance = ghostEthBalanceOf[msg.sender];
         ghostEthBalanceOf[msg.sender] += wad;
-        ghostTotalETH += wad;
+        // Don't add to ghostTotalETH since ETH is just moving from WETH contract
 
         _updateEthHolders(msg.sender, prevEthBalance, ghostEthBalanceOf[msg.sender]);
 
@@ -141,7 +150,7 @@ contract WETH9Harness is StdUtils {
         uint256 prevEthBalance = ghostEthBalanceOf[msg.sender];
         ghostEthBalanceOf[msg.sender] += amount;
         ghostTotalETH += amount;
-        vm.deal(msg.sender,prevEthBalance + amount);
+        vm.deal(msg.sender, prevEthBalance + amount);
 
         _updateEthHolders(msg.sender, prevEthBalance, ghostEthBalanceOf[msg.sender]);
     }
@@ -209,9 +218,14 @@ contract WETH9Harness is StdUtils {
         }
         uint256 prevEthBalance = ghostEthBalanceOf[msg.sender];
         ghostEthBalanceOf[msg.sender] -= wad;
-        ghostTotalETH -= wad;
+        // Don't subtract from ghostTotalETH since ETH is just moving to WETH contract
 
         _updateEthHolders(msg.sender, prevEthBalance, ghostEthBalanceOf[msg.sender]);
+
+        // Track ETH going into WETH contract
+        uint256 prevWethEthBalance = ghostEthBalanceOf[address(weth)];
+        ghostEthBalanceOf[address(weth)] += wad;
+        _updateEthHolders(address(weth), prevWethEthBalance, ghostEthBalanceOf[address(weth)]);
 
         uint256 prevBalance = ghostWethBalanceOf[msg.sender];
         ghostWethBalanceOf[msg.sender] += wad;
