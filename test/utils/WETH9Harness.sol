@@ -15,7 +15,7 @@ contract WETH9Harness is StdUtils {
     Vm private constant vm = Vm(address(uint160(uint256(keccak256("hevm cheat code")))));
 
     WETH9 internal weth;
-    bool public isHalmos;
+// Removed the unused `isHalmos` state variable to reduce storage costs.
 
     // Track WETH holders only
     EnumerableSet.AddressSet internal _holders;
