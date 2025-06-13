@@ -4,35 +4,13 @@ out = "out"
 test = "test"
 libs = ["lib"]
 
-evm_version = 'cancun'
-
-force = false
-# compile options used by halmos (to prevent unnecessary recompilation when running forge test and halmos together)
-extra_output = ["storageLayout", "metadata"]
-
 remappings = [
     "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",
     "forge-std/=lib/forge-std/src/",
 ]
-
-[profile.default.invariant]
-runs = 10
-depth = 1000
-show_metrics = true
-
-[profile.lite]
-src = "src"
-out = "out"
-libs = ["lib"]
-
-remappings = [
-    "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",
-    "forge-std/=lib/forge-std/src/",
-]
-
-[profile.lite.invariant]
-runs = 10
-depth = 100
+[invariant]
+runs = 2048
+depth = 256
 show_metrics = true
 
 [fmt]

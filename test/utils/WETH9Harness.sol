@@ -8,6 +8,7 @@ import {WETH9} from "../../src/WETH9.sol";
 import {StdUtils} from "../../lib/forge-std/src/StdUtils.sol";
 import {Vm} from "../../lib/forge-std/src/Vm.sol";
 
+/// @custom:halmose --invariant-depth 8 --loop 8
 contract WETH9Harness is StdUtils {
     using EnumerableSet for EnumerableSet.AddressSet;
 
@@ -39,7 +40,7 @@ contract WETH9Harness is StdUtils {
     ) {
         require(_weth != address(0), "WETH9Harness: invalid WETH address");
         weth = WETH9(payable(_weth));
-        isHalmos = isHalmosEnv();
+        isHalmos = vm.envOr("HALMOS_TEST", false);
 
         // Initialize WETH contract as an ETH holder with 0 balance
         _ethHolders.add(_weth);
@@ -256,11 +257,4 @@ contract WETH9Harness is StdUtils {
         }
     }
 
-    function isHalmosEnv() public view returns (bool) {
-        try vm.envOr("HALMOS_TEST", false) returns (bool halmosTest) {
-            return halmosTest;
-        } catch {
-            return false;
-        }
-    }
 }
