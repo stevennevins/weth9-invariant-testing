@@ -7,24 +7,18 @@ import {StdUtils} from "forge-std/StdUtils.sol";
 contract WETHUser is StdUtils {
     WETH9Harness public immutable harness;
 
-    constructor(
-        WETH9Harness _harness
-    ) {
+    constructor(WETH9Harness _harness) {
         harness = _harness;
     }
 
-    function deposit(
-        uint256 amount
-    ) external {
+    function deposit(uint256 amount) external {
         amount = _bound(amount, 0, address(this).balance);
         if (amount > 0) {
-            harness.deposit{value: amount}();
+            harness.deposit(amount);
         }
     }
 
-    function withdraw(
-        uint256 amount
-    ) external {
+    function withdraw(uint256 amount) external {
         amount = _bound(amount, 0, harness.balanceOf(address(this)));
         if (amount > 0) {
             harness.withdraw(amount);

@@ -26,29 +26,25 @@ contract WETH9Harness is StdUtils {
         vm.stopPrank();
     }
 
-    constructor(
-        address _weth
-    ) {
+    constructor(address _weth) {
         require(_weth != address(0), "WETH9Harness: invalid WETH address");
         weth = WETH9(payable(_weth));
         isHalmos = vm.envOr("HALMOS_TEST", false);
     }
 
-    function deposit() external payable asCaller {
-        _deposit(msg.value);
+    function deposit(uint256 amount) external asCaller {
+        _deposit(amount);
     }
 
-    receive() external payable asCaller {
-        _deposit(msg.value);
+    receive() external payable {
+        // Remove this function as we're using explicit deposit with amount parameter
     }
 
-    fallback() external payable asCaller {
-        _deposit(msg.value);
+    fallback() external payable {
+        // Remove this function as we're using explicit deposit with amount parameter
     }
 
-    function withdraw(
-        uint256 wad
-    ) external asCaller {
+    function withdraw(uint256 wad) external asCaller {
         weth.withdraw(wad);
         _updateHolder(msg.sender);
     }
@@ -83,9 +79,7 @@ contract WETH9Harness is StdUtils {
         return weth.totalSupply();
     }
 
-    function balanceOf(
-        address owner
-    ) external view returns (uint256) {
+    function balanceOf(address owner) external view returns (uint256) {
         return weth.balanceOf(owner);
     }
 
@@ -101,9 +95,7 @@ contract WETH9Harness is StdUtils {
         return _holders.length();
     }
 
-    function isHolder(
-        address account
-    ) external view returns (bool) {
+    function isHolder(address account) external view returns (bool) {
         return _holders.contains(account);
     }
 
@@ -115,9 +107,7 @@ contract WETH9Harness is StdUtils {
         }
     }
 
-    function _deposit(
-        uint256 wad
-    ) internal {
+    function _deposit(uint256 wad) internal {
         weth.deposit{value: wad}();
         _updateHolder(msg.sender);
     }
