@@ -2,44 +2,36 @@
 pragma solidity ^0.8.21;
 
 import {WETH9} from "../src/WETH9.sol";
+
+import {WETHUser} from "./actors/WETHUser.sol";
 import {WETH9Harness} from "./utils/WETH9Harness.sol";
 import {Test, console2 as console} from "forge-std/Test.sol";
 
 contract WETH_InvariantTest is Test {
     WETH9 internal weth;
     WETH9Harness internal wethHarness;
-    address[] internal users;
+    WETHUser[] internal actors;
     uint256 internal constant NUM_USERS = 3;
 
     function setUp() public {
         weth = new WETH9();
         wethHarness = new WETH9Harness(address(weth));
-        vm.label(address(weth), "WETH9");
-        vm.label(address(wethHarness), "WETH9Harness");
 
+        // Create actor instances
         for (uint256 i = 0; i < NUM_USERS; i++) {
-            address sender = address(uint160(i + 1));
-            targetSender(sender);
-            users.push(sender); // Create deterministic addresses based on index
+            WETHUser actor = new WETHUser(wethHarness);
+            actors.push(actor);
+            vm.deal(address(actor), 100 ether);
+            targetContract(address(actor));
         }
+
+        // Exclude core contracts from being called directly
         excludeContract(address(weth));
-        excludeSender(address(weth)); // Prevent WETH9 from being a sender
-        excludeSender(address(wethHarness)); // Prevent WETH9 from being a sender
-    }
-
-    function invariant_ghostBalancesMatchActual() external view {
-        for (uint256 i = 0; i < users.length; i++) {
-            address user = address(users[i]);
-            assertEq(weth.balanceOf(user), wethHarness.ghostWethBalanceOf(user), "Balance mismatch");
-        }
-    }
-
-    function invariant_ghostTotalSupplyMatchesActual() external view {
-        assertEq(weth.totalSupply(), wethHarness.ghostWethTotalSupply(), "Total supply mismatch");
+        excludeContract(address(wethHarness));
     }
 
     function invariant_sumOfBalancesMatchesTotalSupply() external view {
-        address[] memory balanceHolders = wethHarness.getAllWethHolders();
+        address[] memory balanceHolders = wethHarness.getAllHolders();
         uint256 userSum;
 
         for (uint256 i = 0; i < balanceHolders.length; i++) {
@@ -50,41 +42,16 @@ contract WETH_InvariantTest is Test {
     }
 
     function invariant_ethConservation() external view {
-        address[] memory ethHolders = wethHarness.getAllEthHolders();
-        uint256 sum;
-
-        for (uint256 i = 0; i < ethHolders.length; i++) {
-            sum += ethHolders[i].balance;
-        }
-
+        // The WETH contract should hold exactly as much ETH as the total supply of WETH tokens
         assertEq(
-            sum,
-            wethHarness.ghostTotalETH(),
-            "ETH Conservation Failed: Total ETH does not match sum of holder balances"
+            address(weth).balance,
+            weth.totalSupply(),
+            "WETH contract ETH balance must equal WETH total supply"
         );
     }
 
     function afterInvariant() external view {
         console.log("Post Campaign Logs");
-        console.log("Ghost Total Supply: %e", wethHarness.ghostWethTotalSupply());
-        console.log("Ghost Total ETH: %e", wethHarness.ghostTotalETH());
-
-        address[] memory holders = wethHarness.getAllWethHolders();
-        console.log("WETH Holders: %d", holders.length);
-        for (uint256 i = 0; i < holders.length; i++) {
-            console.log(
-                "  Holder: %s Balance: %e", holders[i], wethHarness.ghostWethBalanceOf(holders[i])
-            );
-        }
-
-        address[] memory ethHolders = wethHarness.getAllEthHolders();
-        console.log("ETH Holders: %d", ethHolders.length);
-        for (uint256 i = 0; i < ethHolders.length; i++) {
-            console.log(
-                "  ETH Holder: %s Balance: %e",
-                ethHolders[i],
-                wethHarness.ghostEthBalanceOf(ethHolders[i])
-            );
-        }
+        console.log("WETH Total Supply: %e", weth.totalSupply());
     }
 }

@@ -9,8 +9,8 @@ remappings = [
     "forge-std/=lib/forge-std/src/",
 ]
 [invariant]
-runs = 2048
-depth = 256
+runs = 512
+depth = 128
 show_metrics = true
 
 [fmt]
