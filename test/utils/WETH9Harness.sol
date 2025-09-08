@@ -15,7 +15,6 @@ contract WETH9Harness is StdUtils {
     Vm private constant vm = Vm(address(uint160(uint256(keccak256("hevm cheat code")))));
 
     WETH9 internal weth;
-// Removed the unused `isHalmos` state variable to reduce storage costs.
 
     // Track WETH holders only
     EnumerableSet.AddressSet internal _holders;
@@ -29,7 +28,6 @@ contract WETH9Harness is StdUtils {
     constructor(address _weth) {
         require(_weth != address(0), "WETH9Harness: invalid WETH address");
         weth = WETH9(payable(_weth));
-        isHalmos = vm.envOr("HALMOS_TEST", false);
     }
 
     function deposit(uint256 amount) external asCaller {
