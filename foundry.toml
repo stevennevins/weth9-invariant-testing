@@ -1,37 +1,29 @@
 [profile.default]
 src = "src"
 out = "out"
+test = "test"
 libs = ["lib"]
-evm_version = "cancun"
-solc_version = "0.8.27"
 
-remappings = [
-    "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",
-    "halmos-cheatcodes/=lib/halmos-cheatcodes/src/",
-    "forge-std/=lib/forge-std/src/"
-]
-
-[profile.halmos]
-src = "src"
-out = "out"
-libs = ["lib"]
-evm_version = "cancun"
-solc_version = "0.8.27"
 bytecode_hash = 'none'
 ast = true
-extra_output = ["storageLayout", "metadata"]
 
 remappings = [
     "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",
-    "halmos-cheatcodes/=lib/halmos-cheatcodes/src/",
-    "forge-std/=lib/forge-std/src/"
+    "forge-std/=lib/forge-std/src/",
 ]
+[invariant]
+runs = 512
+depth = 128
+show_metrics = true
 
 [fmt]
+single_line_statement_blocks = "preserve"
+multiline_func_header = "all"
+sort_imports = true
+line_length = 100
+tab_width = 4
 bracket_spacing = false
 int_types = "long"
-line_length = 100
-multiline_func_header = "params_first"
-number_underscore = "thousands"
 quote_style = "double"
-tab_width = 4
+number_underscore = "remove"
+wrap_comments = false
